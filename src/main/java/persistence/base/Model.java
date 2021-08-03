@@ -1,4 +1,4 @@
-package models;
+package persistence.base;
 
 public interface Model<T> {
     Integer getId();

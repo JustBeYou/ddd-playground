@@ -1,4 +1,4 @@
-package models;
+package persistence.base;
 
 import lombok.Getter;
 import lombok.NonNull;

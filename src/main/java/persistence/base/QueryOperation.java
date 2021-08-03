@@ -1,4 +1,4 @@
-package models;
+package persistence.base;
 
 public enum QueryOperation {
     // Filter operations
