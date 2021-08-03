@@ -10,9 +10,11 @@ import java.util.HashMap;
 
 @Data
 public class BookModel implements MappableModel<Book> {
+    public final String name = "Book";
+    private final Repository<Book> associatedRepository = DIManager.getInstance().get("BookRepository");
+
     private Integer id;
-    @NonNull
-    private Book data;
+    @NonNull private Book data;
 
     public BookModel(Book book) {
         this.data = book;
@@ -49,26 +51,20 @@ public class BookModel implements MappableModel<Book> {
         return this.data;
     }
 
-    Repository<domain.Book> bookRepository = DIManager.getInstance().get("BookRepository");
-
     @Override
-    public void save() {
-        bookRepository.update(this, this.map());
-    }
-
-    @Override
-    public void delete() {
-        bookRepository.delete(this);
-    }
-
-    @Override
-    public void reload() throws Exception {
-        var newValue = bookRepository.findById(this.id);
-        if (newValue.isPresent()) {
-            this.data = newValue.get();
-        } else {
-            throw new Exception("[Book Model] Record not present");
+    public Book unmapIfSet(Book exitingData, FieldsMap map) {
+        assert map.getName().equals("Book");
+        if (!map.getMap().containsKey("name")) {
+            map.getMap().put("name", new Field("name", FieldType.String, exitingData.getName()));
         }
+        if (!map.getMap().containsKey("ISBN")) {
+            map.getMap().put("ISBN", new Field("ISBN", FieldType.String, exitingData.getISBN()));
+        }
+        if (!map.getMap().containsKey("publishedAt")) {
+            map.getMap().put("publishedAt", new Field("publishedAt", FieldType.String, exitingData.getPublishedAt()));
+        }
+
+        return this.unmap(map);
     }
 }
 
