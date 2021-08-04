@@ -5,6 +5,8 @@ import domain.Book;
 import lombok.Data;
 import lombok.NonNull;
 import persistence.base.*;
+import persistence.base.exceptions.InvalidStorageReferenceException;
+import persistence.base.exceptions.UnknownModelException;
 
 import java.util.HashMap;
 
@@ -20,9 +22,17 @@ public class BookModel implements MappableModel<Book> {
         this.data = book;
     }
 
-    public BookModel(Integer id) throws Exception {
+    public BookModel(Integer id) throws InvalidStorageReferenceException, UnknownModelException {
         this.id = id;
-        this.reload();
+        var foundModel = this.associatedRepository.findById(id);
+        if (foundModel.isEmpty()) {
+            throw new InvalidStorageReferenceException(this.getName(), id);
+        }
+        this.data = foundModel.get().getData();
+    }
+
+    public void setData(@NonNull Book data) {
+        this.data = data;
     }
 
     @Override

@@ -15,7 +15,4 @@ public enum QueryOperation {
     // For bools
     IsTrue,
     IsFalse,
-
-    // Update operations
-    Update,
 }
