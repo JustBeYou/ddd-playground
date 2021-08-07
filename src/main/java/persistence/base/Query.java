@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.NonNull;
 
 public class Query {
-    @NonNull @Getter private final String modelName;
     @NonNull @Getter private final QueryNode root;
 
-    Query(String modelName, QueryNode root) {
-        this.modelName = modelName;
+    public Query(
+      QueryNode root) {
         this.root = root;
     }
 }

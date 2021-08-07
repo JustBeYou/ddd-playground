@@ -5,7 +5,7 @@ import lombok.NonNull;
 
 public class Field {
     @NonNull @Getter private final String name;
-    @NonNull @Getter private final FieldType type;
+    @Getter private final FieldType type;
     @Getter private final String value;
 
     public Field(String name, FieldType type) {
@@ -18,5 +18,11 @@ public class Field {
         this.name = name;
         this.type = type;
         this.value = value;
+    }
+
+    public Field(String name, String value) {
+      this.name = name;
+      this.type = null;
+      this.value = value;
     }
 }

@@ -1,14 +1,16 @@
 package persistence.inmemory;
 
 import lombok.Data;
+import lombok.SneakyThrows;
 import persistence.base.*;
+import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class InMemoryRepository<T> implements Repository<T> {
     private Integer nextId;
@@ -45,13 +47,125 @@ public class InMemoryRepository<T> implements Repository<T> {
     }
 
     @Override
-    public Collection<MappableModel<T>> find(Query query) {
-        return null;
+    public Collection<MappableModel<T>> find(Query query) throws UnknownModelException {
+      var result = new ArrayList<MappableModel<T>>();
+      for (var entry: this.store.entrySet()) {
+        var value = entry.getValue();
+        var key = entry.getKey();
+        var valueModel = this.modelFactory.build(value.getClass().getSimpleName(), value);
+        valueModel.setId(key);
+        try {
+          if (isNodeSatisfied(valueModel.map(), query.getRoot())) {
+            result.add(valueModel);
+          }
+        } catch (InvalidQueryOperation ignored) {
+
+        }
+      }
+      return result;
+    }
+
+    private boolean isNodeSatisfied(FieldsMap props, QueryNode node) throws InvalidQueryOperation {
+      if (node.getType() == QueryNodeType.CLAUSE) {
+        return isOperationSatisfied(props, node);
+      }
+
+      var children = node.getChildren();
+      if (children.isEmpty()) return true;
+
+      boolean result;
+      BiFunction<Boolean, Boolean, Boolean> op = (a, b) -> false;
+      switch (node.getType()) {
+        case AND_OPERATION:
+          result = true;
+          op = (a, b) -> a && b;
+          break;
+
+        case OR_OPERATION:
+          result = false;
+          op = (a, b) -> a || b;
+          break;
+
+        case XOR_OPERATION:
+          result = false;
+          op = (a, b) -> a ^ b;
+          break;
+
+        default:
+          throw new InvalidQueryOperation(node.getType());
+      }
+
+      for (var child: children) {
+        result = op.apply(result, isOperationSatisfied(props, child));
+      }
+
+      return result;
+    }
+
+    private boolean isOperationSatisfied(FieldsMap props, QueryNode node) throws InvalidQueryOperation {
+      assert node.getType() == QueryNodeType.CLAUSE;
+      var clause = node.getClause();
+      var clauseField = clause.getField();
+      var clauseOperation = clause.getOperation();
+
+      var foundField = props.getMap().get(clauseField.getName());
+      switch (foundField.getType()) {
+        case String:
+          var isSameString = foundField.getValue().equals(clauseField.getValue());
+          switch (clauseOperation) {
+            case Like:
+              return isSameString;
+            case NotLike:
+              return !isSameString;
+            default:
+              break;
+          }
+          break;
+
+        case Boolean:
+          var boolValue = Boolean.parseBoolean(foundField.getValue());
+          switch (clauseOperation) {
+            case IsTrue:
+              return boolValue;
+            case IsFalse:
+              return !boolValue;
+            default:
+              break;
+          }
+          break;
+
+        case Integer:
+          var foundInteger = Integer.parseInt(foundField.getValue());
+          var queryInteger = Integer.parseInt(clauseField.getValue());
+          switch (clauseOperation) {
+            case Equal:
+              return foundInteger == queryInteger;
+            case NotEqual:
+              return foundInteger != queryInteger;
+            case LessThan:
+              return foundInteger < queryInteger;
+            case LessEqualThan:
+              return foundInteger <= queryInteger;
+            case GreaterThan:
+              return foundInteger > queryInteger;
+            case GreaterEqualThan:
+              return foundInteger >= queryInteger;
+            default:
+              break;
+          }
+          break;
+
+        case Reference:
+        default:
+          break;
+      }
+
+      throw new InvalidQueryOperation(foundField, clauseOperation);
     }
 
     @Override
-    public Optional<MappableModel<T>> findOne(Query query) {
-        return Optional.empty();
+    public Optional<MappableModel<T>> findOne(Query query) throws UnknownModelException {
+      return this.find(query).stream().findFirst();
     }
 
     @Override
