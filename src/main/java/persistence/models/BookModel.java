@@ -1,12 +1,18 @@
 package persistence.models;
 
 import di.DIManager;
+import domain.Author;
 import domain.Book;
 import lombok.Data;
 import lombok.NonNull;
 import persistence.base.*;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
+import persistence.base.relations.RelatedField;
+import persistence.base.relations.RelationType;
+import persistence.base.serialization.Field;
+import persistence.base.serialization.FieldType;
+import persistence.base.serialization.FieldsMap;
 
 import java.util.HashMap;
 
@@ -35,7 +41,22 @@ public class BookModel implements MappableModel<Book> {
         this.data = data;
     }
 
-    @Override
+  @Override
+  public RelatedField[] getRelatedFields() {
+    return new RelatedField[]{
+      new RelatedField(
+        RelationType.ONE_ONWS_MANY,
+        "Author",
+        "name",
+        new Field("books", FieldType.Reference),
+        "Book",
+        "authorName",
+        new Field("author", FieldType.Reference)
+      )
+    };
+  }
+
+  @Override
     public FieldsMap map() {
         var map = new HashMap<String, Field>();
         if (this.id != null) {
@@ -44,6 +65,8 @@ public class BookModel implements MappableModel<Book> {
         map.put("name", new Field("name", FieldType.String, this.data.getName()));
         map.put("ISBN", new Field("ISBN", FieldType.String, this.data.getISBN()));
         map.put("publishedAt", new Field("publishedAt", FieldType.String, this.data.getPublishedAt()));
+        map.put("authorName", new Field("authorName", FieldType.String, this.data.getAuthorName()));
+        // "author" is not serialized as it is a related field
         return new FieldsMap(map, "Book");
     }
 
@@ -53,7 +76,8 @@ public class BookModel implements MappableModel<Book> {
         var name = map.getMap().get("name").getValue();
         var ISBN = map.getMap().get("ISBN").getValue();
         var publishedAt = map.getMap().get("publishedAt").getValue();
-        this.data = new domain.Book(name, ISBN, publishedAt);
+        var authorName = map.getMap().get("authorName").getValue();
+        this.data = new domain.Book(name, ISBN, publishedAt, authorName);
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -73,8 +97,18 @@ public class BookModel implements MappableModel<Book> {
         if (!map.getMap().containsKey("publishedAt")) {
             map.getMap().put("publishedAt", new Field("publishedAt", FieldType.String, exitingData.getPublishedAt()));
         }
+        if (!map.getMap().containsKey("authorName")) {
+          map.getMap().put("authorName", new Field("authorName", FieldType.String, exitingData.getAuthorName()));
+        }
 
         return this.unmap(map);
     }
+
+  @Override
+  public void loadField(String field, Object object) {
+    if ("author".equals(field)) {
+      this.getData().setAuthor((Author) object);
+    }
+  }
 }
 

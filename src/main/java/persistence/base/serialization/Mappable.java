@@ -1,4 +1,4 @@
-package persistence.base;
+package persistence.base.serialization;
 
 public interface Mappable<T> {
     FieldsMap map();

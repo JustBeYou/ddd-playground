@@ -1,8 +1,8 @@
-package persistence.base;
+package persistence.base.serialization;
 
 public enum FieldType {
     String,
     Integer,
-    Reference,
     Boolean,
+    Reference,
 }

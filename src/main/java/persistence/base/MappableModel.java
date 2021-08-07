@@ -3,6 +3,10 @@ package persistence.base;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.NullStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
+import persistence.base.models.Model;
+import persistence.base.relations.RelatedField;
+import persistence.base.serialization.Field;
+import persistence.base.serialization.Mappable;
 
 public interface MappableModel<T> extends Model<T>, Mappable<T> {
     default void save() throws UnknownModelException, InvalidStorageReferenceException {
@@ -34,4 +38,10 @@ public interface MappableModel<T> extends Model<T>, Mappable<T> {
 
         this.setData(newModel.get().getData());
     }
+
+    default RelatedField[] getRelatedFields() {
+      return new RelatedField[]{};
+    }
+
+    default void loadField(String field, Object object) {}
 }

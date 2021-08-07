@@ -1,4 +1,4 @@
-package persistence.base;
+package persistence.base.queries;
 
 public enum QueryNodeType {
     CLAUSE,

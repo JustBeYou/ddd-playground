@@ -1,12 +1,18 @@
 import di.DIManager;
+import domain.Author;
 import domain.Book;
+import domain.Country;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import persistence.base.*;
-import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.NullStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
+import persistence.base.models.Model;
+import persistence.base.queries.Query;
+import persistence.base.queries.QueryNode;
+import persistence.base.queries.QueryNodeFactory;
+import persistence.base.queries.QueryOperation;
+import persistence.base.serialization.Field;
 import persistence.inmemory.InMemoryRepository;
 import persistence.models.BookModel;
 import persistence.models.BooksModelsFactory;
@@ -20,19 +26,30 @@ public class InMemoryPersistenceTest {
     return new Book(
       "test",
       "123-123-123",
-      "3 May 2015"
+      "3 May 2015",
+      "Misu"
     );
   }
 
-  private InMemoryRepository<Book> getRepo() {
+  private InMemoryRepository<Book> getBookRepo() {
     return DIManager.getInstance().get("BookRepository");
   }
 
+  private InMemoryRepository<Author> getAuthorRepo() {
+    return DIManager.getInstance().get("AuthorRepository");
+  }
+
   @BeforeAll
-  static void setup() {
+  static void setup() throws UnknownModelException {
     var booksModelsFactory = new BooksModelsFactory();
     var diManager = DIManager.getInstance();
-    diManager.register("BookRepository", new InMemoryRepository<Book>(booksModelsFactory));
+    var bookRepo = new InMemoryRepository<Book>("Book", booksModelsFactory);
+    var authorRepo = new InMemoryRepository<Author>("Author", booksModelsFactory);
+    diManager.register("BookRepository", bookRepo);
+    diManager.register("AuthorRepository", authorRepo);
+
+    var author = new Author("Misu", Country.Romania);
+    authorRepo.create(author);
   }
 
   @Test
@@ -46,34 +63,34 @@ public class InMemoryPersistenceTest {
   @Test
   void shouldCreateEntity() throws UnknownModelException {
     var book = createBook();
-    var bookModel = getRepo().create(book);
+    var bookModel = getBookRepo().create(book);
     assertNotNull(bookModel.getId());
     assertEquals(book.getName(), bookModel.getData().getName());
   }
 
   @Test
   void shouldFindEntityById() throws UnknownModelException {
-    var bookModel = getRepo().create(createBook());
-    var foundBookModel = getRepo().findById(bookModel.getId());
+    var bookModel = getBookRepo().create(createBook());
+    var foundBookModel = getBookRepo().findById(bookModel.getId());
     assertTrue(foundBookModel.isPresent());
     assertEquals(foundBookModel.get().getData().getName(), bookModel.getData().getName());
   }
 
   @Test
   void shouldUpdateEntity() throws UnknownModelException, InvalidStorageReferenceException, NullStorageReferenceException {
-    var bookModel = getRepo().create(createBook());
+    var bookModel = getBookRepo().create(createBook());
     bookModel.getData().setName("FAKE");
     bookModel.save();
-    var foundBookModel = getRepo().findById(bookModel.getId());
+    var foundBookModel = getBookRepo().findById(bookModel.getId());
     assertTrue(foundBookModel.isPresent());
     assertEquals(foundBookModel.get().getData().getName(), "FAKE");
   }
 
   @Test
   void shouldDeleteEntity() throws UnknownModelException, NullStorageReferenceException, InvalidStorageReferenceException {
-    var bookModel = getRepo().create(createBook());
+    var bookModel = getBookRepo().create(createBook());
     bookModel.delete();
-    var foundBookModel = getRepo().findById(bookModel.getId());
+    var foundBookModel = getBookRepo().findById(bookModel.getId());
     assertTrue(foundBookModel.isEmpty());
   }
 
@@ -86,19 +103,29 @@ public class InMemoryPersistenceTest {
     }));
 
     var ids = new Integer[]{
-      getRepo().create(new Book("fake01", "0002", "2012")).getId(),
-      getRepo().create(new Book("fake02", "0002", "2012")).getId(),
-      getRepo().create(new Book("fake03", "0002", "2012")).getId(),
-      getRepo().create(new Book("fake04", "0001", "2012")).getId(),
-      getRepo().create(new Book("fake05", "0001", "2012")).getId(),
+      getBookRepo().create(new Book("fake01", "0002", "2012", "Misu")).getId(),
+      getBookRepo().create(new Book("fake02", "0002", "2012", "Misu")).getId(),
+      getBookRepo().create(new Book("fake03", "0002", "2012", "Misu")).getId(),
+      getBookRepo().create(new Book("fake04", "0001", "2012", "Misu")).getId(),
+      getBookRepo().create(new Book("fake05", "0001", "2012", "Misu")).getId(),
     };
 
-    var result = getRepo().find(query);
+    var result = getBookRepo().find(query);
     assertEquals(3, result.size());
 
     var foundIds = result.stream().map(Model::getId).collect(Collectors.toList());
     assertTrue(foundIds.contains(ids[0]));
     assertTrue(foundIds.contains(ids[3]));
     assertTrue(foundIds.contains(ids[4]));
+  }
+
+  @Test
+  void shouldLoadRelation() throws UnknownModelException {
+    var book = getBookRepo().findById(1);
+    assertTrue(book.isPresent());
+    var bookModel = book.get();
+    getBookRepo().loadRelations(bookModel);
+    assertNotNull(bookModel.getData().getAuthor());
+    assertEquals("Misu", bookModel.getData().getAuthor().getName());
   }
 }

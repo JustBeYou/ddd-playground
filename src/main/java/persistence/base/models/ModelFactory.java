@@ -1,5 +1,6 @@
-package persistence.base;
+package persistence.base.models;
 
+import persistence.base.MappableModel;
 import persistence.base.exceptions.UnknownModelException;
 
 public interface ModelFactory {

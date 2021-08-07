@@ -1,4 +1,4 @@
-package persistence.base;
+package persistence.base.queries;
 
 import lombok.Getter;
 import lombok.NonNull;

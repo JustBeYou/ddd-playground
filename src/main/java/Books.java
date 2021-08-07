@@ -1,10 +1,13 @@
 import di.DIManager;
+import domain.Author;
 import domain.Book;
+import domain.Country;
 import persistence.base.Repository;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.NullStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
 import persistence.inmemory.InMemoryRepository;
+import persistence.models.AuthorModel;
 import persistence.models.BookModel;
 import persistence.models.BooksModelsFactory;
 
@@ -12,13 +15,17 @@ public class Books {
     public static void main(String[] args) throws UnknownModelException, InvalidStorageReferenceException, NullStorageReferenceException {
         registerDeps();
 
-        var book1 = new Book("Cel mai iubit dintre pamanteni", "1234", "1970");
+        var author = new Author("Misu", Country.Romania);
+        var authorModel = new AuthorModel(author);
+        authorModel.save();
+
+        var book1 = new Book("Cel mai iubit dintre pamanteni", "1234", "1970", "Misu");
         var bookModel1 = new BookModel(book1);
         bookModel1.save();
         System.out.println(book1.toString());
         System.out.println(bookModel1.toString());
 
-        var book2 = new Book("Cartea Junglei", "4321", "1950");
+        var book2 = new Book("Cartea Junglei", "4321", "1950", "Misu");
         var bookModel2 = new BookModel(book2);
         bookModel2.save();
         System.out.println(book2.toString());
@@ -46,6 +53,7 @@ public class Books {
         var booksModelsFactory = new BooksModelsFactory();
 
         var diManager = DIManager.getInstance();
-        diManager.register("BookRepository", new InMemoryRepository<Book>(booksModelsFactory));
+        diManager.register("BookRepository", new InMemoryRepository<Book>("Book", booksModelsFactory));
+        diManager.register("AuthorRepository", new InMemoryRepository<Author>("Author", booksModelsFactory));
     }
 }

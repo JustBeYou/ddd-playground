@@ -1,7 +1,8 @@
-package persistence.base;
+package persistence.base.queries;
 
 import lombok.Getter;
 import lombok.NonNull;
+import persistence.base.serialization.Field;
 
 public class QueryClause {
     @NonNull @Getter private final Field field;

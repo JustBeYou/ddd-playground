@@ -1,39 +1,42 @@
 package persistence.inmemory;
 
-import lombok.Data;
-import lombok.SneakyThrows;
 import persistence.base.*;
 import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
+import persistence.base.models.ModelFactory;
+import persistence.base.queries.*;
+import persistence.base.serialization.Field;
+import persistence.base.serialization.FieldType;
+import persistence.base.serialization.FieldsMap;
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class InMemoryRepository<T> implements Repository<T> {
     private Integer nextId;
     private final Map<Integer, T> store;
     private final ModelFactory modelFactory;
+    private final String modelName;
 
-    public InMemoryRepository(ModelFactory modelFactory) {
+    public InMemoryRepository(String modelName, ModelFactory modelFactory) {
+        this.modelName = modelName;
         this.modelFactory = modelFactory;
-        this.store = new HashMap<>();
+        this.store = InMemoryStore.getInstance().getStore(modelName);
         this.nextId = 1;
     }
 
     @Override
     public MappableModel<T> create(T data) throws UnknownModelException {
-        var className = data.getClass().getSimpleName();
         MappableModel<T> model = this.modelFactory.build(
-                className,
+                modelName,
                 data
         );
 
         model.setId(this.nextId++);
         this.store.put(model.getId(), model.getData());
 
+        loadRelations(model);
         return model;
     }
 
@@ -52,7 +55,7 @@ public class InMemoryRepository<T> implements Repository<T> {
       for (var entry: this.store.entrySet()) {
         var value = entry.getValue();
         var key = entry.getKey();
-        var valueModel = this.modelFactory.build(value.getClass().getSimpleName(), value);
+        var valueModel = this.modelFactory.build(this.modelName, value);
         valueModel.setId(key);
         try {
           if (isNodeSatisfied(valueModel.map(), query.getRoot())) {
@@ -76,23 +79,19 @@ public class InMemoryRepository<T> implements Repository<T> {
       boolean result;
       BiFunction<Boolean, Boolean, Boolean> op = (a, b) -> false;
       switch (node.getType()) {
-        case AND_OPERATION:
+        case AND_OPERATION -> {
           result = true;
           op = (a, b) -> a && b;
-          break;
-
-        case OR_OPERATION:
+        }
+        case OR_OPERATION -> {
           result = false;
           op = (a, b) -> a || b;
-          break;
-
-        case XOR_OPERATION:
+        }
+        case XOR_OPERATION -> {
           result = false;
           op = (a, b) -> a ^ b;
-          break;
-
-        default:
-          throw new InvalidQueryOperation(node.getType());
+        }
+        default -> throw new InvalidQueryOperation(node.getType());
       }
 
       for (var child: children) {
@@ -156,7 +155,9 @@ public class InMemoryRepository<T> implements Repository<T> {
           break;
 
         case Reference:
-        default:
+          if (clauseOperation == QueryOperation.IsSame) {
+            return foundField.getValue().equals(clauseField.getValue());
+          }
           break;
       }
 
@@ -172,9 +173,8 @@ public class InMemoryRepository<T> implements Repository<T> {
     public Optional<MappableModel<T>> findById(Integer id) throws UnknownModelException {
         if (this.store.containsKey(id)) {
             var data = this.store.get(id);
-            var className = data.getClass().getSimpleName();
             var model = modelFactory.build(
-                    className,
+                    modelName,
                     data
             );
             model.setId(id);
@@ -192,4 +192,49 @@ public class InMemoryRepository<T> implements Repository<T> {
             throw new InvalidStorageReferenceException(model.getName(), model.getId());
         }
     }
+
+  @Override
+  public void loadRelations(MappableModel<T> model) throws UnknownModelException {
+    var relatedFields = model.getRelatedFields();
+    var queryNodeFactory = new QueryNodeFactory();
+
+    for (var relatedField: relatedFields) {
+      var modelToLoad = relatedField.getTargetModel();
+      var isSelfSource = true;
+      if (this.modelName.equals(modelToLoad)) {
+        modelToLoad = relatedField.getSourceModel();
+        isSelfSource = false;
+      }
+
+      var relatedRepo = new InMemoryRepository<Object>(modelToLoad, this.modelFactory);
+      switch (relatedField.getRelationType()) {
+        case ONE_ONWS_MANY -> {
+          if (isSelfSource) {
+            // Source is loading the target
+            // TODO: ...
+          } else {
+            // Target is loading the source
+            var query = new Query(
+              queryNodeFactory.buildClause(
+                new Field(relatedField.getForeignKeyFieldOnSource(), FieldType.Reference),
+                QueryOperation.IsSame
+              )
+            );
+            var foundEntity = relatedRepo.findOne(query);
+            foundEntity.ifPresent(objectMappableModel -> model.loadField(
+              relatedField.getTargetModelRefField().getName(), objectMappableModel)
+            );
+          }
+        }
+
+        case ONE_OWNS_ANOTHER -> {
+          if (isSelfSource) {
+
+          } else {
+
+          }
+        }
+      }
+    }
+  }
 }

@@ -1,4 +1,4 @@
-package persistence.base;
+package persistence.base.queries;
 
 public enum QueryOperation {
     // Filter operations
@@ -15,4 +15,7 @@ public enum QueryOperation {
     // For bools
     IsTrue,
     IsFalse,
+
+    // For any type
+    IsSame,
 }

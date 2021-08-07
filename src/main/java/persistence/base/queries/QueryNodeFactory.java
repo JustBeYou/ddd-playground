@@ -1,4 +1,6 @@
-package persistence.base;
+package persistence.base.queries;
+
+import persistence.base.serialization.Field;
 
 public class QueryNodeFactory {
     public QueryNode buildClause(Field field, QueryOperation operation) {

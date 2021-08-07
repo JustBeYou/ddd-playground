@@ -1,8 +1,9 @@
 package persistence.models;
 
+import domain.Author;
 import domain.Book;
 import persistence.base.MappableModel;
-import persistence.base.ModelFactory;
+import persistence.base.models.ModelFactory;
 import persistence.base.exceptions.UnknownModelException;
 
 public class BooksModelsFactory implements ModelFactory {
@@ -12,6 +13,8 @@ public class BooksModelsFactory implements ModelFactory {
         switch (modelName) {
             case "Book":
                 return (MappableModel<T>) new BookModel((Book) data);
+          case "Author":
+                return (MappableModel<T>) new AuthorModel((Author) data);
             default:
                 throw new UnknownModelException(modelName);
         }

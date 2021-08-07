@@ -1,4 +1,4 @@
-package persistence.base;
+package persistence.base.serialization;
 
 import lombok.Data;
 import lombok.NonNull;

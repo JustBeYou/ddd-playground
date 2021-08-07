@@ -1,8 +1,8 @@
 package persistence.base.exceptions;
 
-import persistence.base.Field;
-import persistence.base.QueryNodeType;
-import persistence.base.QueryOperation;
+import persistence.base.serialization.Field;
+import persistence.base.queries.QueryNodeType;
+import persistence.base.queries.QueryOperation;
 
 public class InvalidQueryOperation extends Exception {
   public InvalidQueryOperation(Field field, QueryOperation operation) {
