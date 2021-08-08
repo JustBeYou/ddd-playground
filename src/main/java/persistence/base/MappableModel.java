@@ -39,9 +39,16 @@ public interface MappableModel<T> extends Model<T>, Mappable<T> {
         this.setData(newModel.get().getData());
     }
 
+    default void loadRelations() throws NullStorageReferenceException, UnknownModelException {
+      if (this.getId() == null) {
+        throw new NullStorageReferenceException(this.getName());
+      }
+      this.getAssociatedRepository().loadRelations(this);
+    }
+
     default RelatedField[] getRelatedFields() {
       return new RelatedField[]{};
     }
 
-    default void loadField(String field, Object object) {}
+    default void loadRelationField(String field, Object object) {}
 }

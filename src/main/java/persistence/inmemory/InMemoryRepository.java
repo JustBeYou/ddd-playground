@@ -36,7 +36,6 @@ public class InMemoryRepository<T> implements Repository<T> {
         model.setId(this.nextId++);
         this.store.put(model.getId(), model.getData());
 
-        loadRelations(model);
         return model;
     }
 
@@ -57,18 +56,23 @@ public class InMemoryRepository<T> implements Repository<T> {
         var key = entry.getKey();
         var valueModel = this.modelFactory.build(this.modelName, value);
         valueModel.setId(key);
+
         try {
           if (isNodeSatisfied(valueModel.map(), query.getRoot())) {
             result.add(valueModel);
           }
-        } catch (InvalidQueryOperation ignored) {
-
+        } catch (InvalidQueryOperation e) {
+          System.out.println("[WARNING] Invalid query operation: " + e.getMessage());
         }
       }
       return result;
     }
 
     private boolean isNodeSatisfied(FieldsMap props, QueryNode node) throws InvalidQueryOperation {
+      if (node == null) {
+        return true;
+      }
+
       if (node.getType() == QueryNodeType.CLAUSE) {
         return isOperationSatisfied(props, node);
       }
@@ -108,11 +112,17 @@ public class InMemoryRepository<T> implements Repository<T> {
       var clauseOperation = clause.getOperation();
 
       var foundField = props.getMap().get(clauseField.getName());
+      if (foundField.getType() != clauseField.getType() &&
+          clauseField.getType() != FieldType.Auto) {
+        return false;
+      }
+
       switch (foundField.getType()) {
         case String:
           var isSameString = foundField.getValue().equals(clauseField.getValue());
           switch (clauseOperation) {
             case Like:
+            case IsSame:
               return isSameString;
             case NotLike:
               return !isSameString;
@@ -124,6 +134,8 @@ public class InMemoryRepository<T> implements Repository<T> {
         case Boolean:
           var boolValue = Boolean.parseBoolean(foundField.getValue());
           switch (clauseOperation) {
+            case IsSame:
+              return boolValue == Boolean.parseBoolean(clauseField.getValue());
             case IsTrue:
               return boolValue;
             case IsFalse:
@@ -138,6 +150,7 @@ public class InMemoryRepository<T> implements Repository<T> {
           var queryInteger = Integer.parseInt(clauseField.getValue());
           switch (clauseOperation) {
             case Equal:
+            case IsSame:
               return foundInteger == queryInteger;
             case NotEqual:
               return foundInteger != queryInteger;
@@ -155,9 +168,6 @@ public class InMemoryRepository<T> implements Repository<T> {
           break;
 
         case Reference:
-          if (clauseOperation == QueryOperation.IsSame) {
-            return foundField.getValue().equals(clauseField.getValue());
-          }
           break;
       }
 
@@ -196,7 +206,6 @@ public class InMemoryRepository<T> implements Repository<T> {
   @Override
   public void loadRelations(MappableModel<T> model) throws UnknownModelException {
     var relatedFields = model.getRelatedFields();
-    var queryNodeFactory = new QueryNodeFactory();
 
     for (var relatedField: relatedFields) {
       var modelToLoad = relatedField.getTargetModel();
@@ -208,33 +217,56 @@ public class InMemoryRepository<T> implements Repository<T> {
 
       var relatedRepo = new InMemoryRepository<Object>(modelToLoad, this.modelFactory);
       switch (relatedField.getRelationType()) {
-        case ONE_ONWS_MANY -> {
+        case ONE_OWNS_MANY -> {
           if (isSelfSource) {
             // Source is loading the target
-            // TODO: ...
+            var refField = relatedField.getForeignKeyFieldOnTarget();
+            var refValue = model
+              .map().getMap()
+              .get(relatedField.getForeignKeyFieldOnSource())
+              .getValue();
+            var query = buildSameQuery(refField, refValue);
+
+            var foundEntities = relatedRepo.find(query);
+            model.loadRelationField(relatedField.getSourceModelRefField().getName(), foundEntities);
           } else {
             // Target is loading the source
-            var query = new Query(
-              queryNodeFactory.buildClause(
-                new Field(relatedField.getForeignKeyFieldOnSource(), FieldType.Reference),
-                QueryOperation.IsSame
-              )
-            );
+            var refField = relatedField.getForeignKeyFieldOnSource();
+            var refValue = model
+              .map().getMap()
+              .get(relatedField.getForeignKeyFieldOnTarget())
+              .getValue();
+            var query = buildSameQuery(refField, refValue);
+
             var foundEntity = relatedRepo.findOne(query);
-            foundEntity.ifPresent(objectMappableModel -> model.loadField(
-              relatedField.getTargetModelRefField().getName(), objectMappableModel)
+            foundEntity.ifPresent(objectMappableModel -> model.loadRelationField(
+              relatedField.getTargetModelRefField().getName(), objectMappableModel.getData())
             );
           }
         }
 
         case ONE_OWNS_ANOTHER -> {
           if (isSelfSource) {
-
+            // TODO: implement this
           } else {
-
+            // TODO: implement this
           }
         }
       }
     }
+  }
+
+  private Query buildSameQuery(String refField, String refValue) {
+    var queryNodeFactory = new QueryNodeFactory();
+    return new Query(
+        queryNodeFactory.buildClause(
+          new Field(
+            refField,
+            FieldType.Auto,
+            refValue
+          ),
+          QueryOperation.IsSame
+        )
+      );
   }
 }

@@ -23,6 +23,6 @@ public class InMemoryStore {
     if (!database.containsKey(name)) {
       database.put(name, new HashMap<>());
     }
-    return (Map<Integer, T>) database.get("name");
+    return (Map<Integer, T>) database.get(name);
   }
 }

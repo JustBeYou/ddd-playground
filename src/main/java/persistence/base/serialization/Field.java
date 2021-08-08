@@ -1,12 +1,14 @@
 package persistence.base.serialization;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 
+@Data
 public class Field {
-    @NonNull @Getter private final String name;
-    @Getter private final FieldType type;
-    @Getter private final String value;
+    @NonNull private final String name;
+    private final FieldType type;
+    private final String value;
 
     public Field(String name, FieldType type) {
         this.name = name;
@@ -22,7 +24,7 @@ public class Field {
 
     public Field(String name, String value) {
       this.name = name;
-      this.type = null;
+      this.type = FieldType.Auto;
       this.value = value;
     }
 }

@@ -14,6 +14,8 @@ import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
 import persistence.base.serialization.FieldsMap;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 @Data
@@ -45,7 +47,7 @@ public class BookModel implements MappableModel<Book> {
   public RelatedField[] getRelatedFields() {
     return new RelatedField[]{
       new RelatedField(
-        RelationType.ONE_ONWS_MANY,
+        RelationType.ONE_OWNS_MANY,
         "Author",
         "name",
         new Field("books", FieldType.Reference),
@@ -105,7 +107,19 @@ public class BookModel implements MappableModel<Book> {
     }
 
   @Override
-  public void loadField(String field, Object object) {
+  public Collection<Field> getFields() {
+    var fields = new ArrayList<Field>();
+    fields.add(new Field("id", FieldType.Integer));
+    fields.add(new Field("name", FieldType.String));
+    fields.add(new Field("ISBN", FieldType.String));
+    fields.add(new Field("publishedAt", FieldType.String));
+    fields.add(new Field("authorName", FieldType.String));
+    fields.add(new Field("author", FieldType.Reference));
+    return fields;
+  }
+
+  @Override
+  public void loadRelationField(String field, Object object) {
     if ("author".equals(field)) {
       this.getData().setAuthor((Author) object);
     }

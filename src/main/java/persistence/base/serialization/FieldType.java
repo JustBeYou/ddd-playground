@@ -5,4 +5,5 @@ public enum FieldType {
     Integer,
     Boolean,
     Reference,
+    Auto,
 }

@@ -13,10 +13,12 @@ import persistence.base.queries.QueryNode;
 import persistence.base.queries.QueryNodeFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
+import persistence.base.serialization.FieldType;
 import persistence.inmemory.InMemoryRepository;
 import persistence.models.BookModel;
 import persistence.models.BooksModelsFactory;
 
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -120,12 +122,32 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldLoadRelation() throws UnknownModelException {
-    var book = getBookRepo().findById(1);
-    assertTrue(book.isPresent());
-    var bookModel = book.get();
-    getBookRepo().loadRelations(bookModel);
+  void shouldLoadRelation() throws UnknownModelException, NullStorageReferenceException {
+    var bookModel = getBookRepo().create(new Book(
+      "relation_test",
+      "123-123-123",
+      "25 May",
+      "Misu"
+    ));
+    bookModel.loadRelations();
     assertNotNull(bookModel.getData().getAuthor());
     assertEquals("Misu", bookModel.getData().getAuthor().getName());
+
+    var queryNodeFactory = new QueryNodeFactory();
+    var query = new Query(
+      queryNodeFactory.buildClause(
+        new Field("name", FieldType.String, "Misu"),
+        QueryOperation.Like
+      )
+    );
+    var foundAuthor = getAuthorRepo().findOne(query);
+    assertTrue(foundAuthor.isPresent());
+    var authorModel = foundAuthor.get();
+    authorModel.loadRelations();
+    assertTrue(authorModel.getData().getBooks().size() > 0);
+    assertTrue(authorModel.getData().getBooks().stream()
+      .map(Book::getName)
+      .anyMatch(Predicate.isEqual("relation_test"))
+    );
   }
 }
