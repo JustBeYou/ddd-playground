@@ -6,11 +6,13 @@ import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
 import persistence.base.models.ModelFactory;
+import persistence.base.models.ModelsFactoryDeprecated;
 import persistence.base.queries.*;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
 import persistence.base.serialization.FieldsMap;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -18,24 +20,23 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class InMemoryRepository<T> implements Repository<T> {
+  private final ModelFactory<T> modelFactory;
   private final Map<Integer, T> store;
-  private final ModelFactory modelFactory;
   private final String modelName;
   private Integer nextId;
+  private RepoFinder repoFinder;
 
-  public InMemoryRepository(String modelName, ModelFactory modelFactory) {
-    this.modelName = modelName;
+  public InMemoryRepository(ModelFactory<T> modelFactory, RepoFinder repoFinder) {
     this.modelFactory = modelFactory;
-    this.store = InMemoryStore.getInstance().getStore(modelName);
+    this.modelName = modelFactory.getModelName();
+    this.store = InMemoryStore.getInstance().getStore(this.modelName);
     this.nextId = 1;
+    this.repoFinder = repoFinder;
   }
 
   @Override
   public MappableModel<T> create(T data) throws UnknownModelException {
-    MappableModel<T> model = this.modelFactory.build(
-      modelName,
-      data
-    );
+    MappableModel<T> model = this.modelFactory.build(data);
 
     model.setId(this.nextId++);
     this.store.put(model.getId(), model.getData());
@@ -58,7 +59,7 @@ public class InMemoryRepository<T> implements Repository<T> {
     for (var entry : this.store.entrySet()) {
       var value = entry.getValue();
       var key = entry.getKey();
-      var valueModel = this.modelFactory.build(this.modelName, value);
+      var valueModel = this.modelFactory.build(value);
       valueModel.setId(key);
 
       try {
@@ -187,10 +188,7 @@ public class InMemoryRepository<T> implements Repository<T> {
   public Optional<MappableModel<T>> findById(Integer id) throws UnknownModelException {
     if (this.store.containsKey(id)) {
       var data = this.store.get(id);
-      var model = modelFactory.build(
-        modelName,
-        data
-      );
+      var model = modelFactory.build(data);
       model.setId(id);
       return Optional.of(model);
     }
@@ -219,7 +217,7 @@ public class InMemoryRepository<T> implements Repository<T> {
         isSelfSource = false;
       }
 
-      var relatedRepo = new InMemoryRepository<Object>(modelToLoad, this.modelFactory);
+      var relatedRepo = this.repoFinder.getRepo(modelToLoad);
       switch (relatedField.getRelationType()) {
         case ONE_OWNS_MANY -> {
           if (isSelfSource) {

@@ -1,7 +1,5 @@
 package persistence.base.models;
 
-import persistence.base.Repository;
-
 public interface Model<T> {
   String getName();
 
@@ -12,6 +10,4 @@ public interface Model<T> {
   T getData();
 
   void setData(T data);
-
-  Repository<T> getAssociatedRepository();
 }

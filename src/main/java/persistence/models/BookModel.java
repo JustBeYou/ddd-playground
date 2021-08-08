@@ -1,14 +1,10 @@
 package persistence.models;
 
-import di.DIManager;
 import domain.Author;
 import domain.Book;
 import lombok.Data;
 import lombok.NonNull;
 import persistence.base.MappableModel;
-import persistence.base.Repository;
-import persistence.base.exceptions.InvalidStorageReferenceException;
-import persistence.base.exceptions.UnknownModelException;
 import persistence.base.relations.RelatedField;
 import persistence.base.relations.RelationType;
 import persistence.base.serialization.Field;
@@ -21,8 +17,7 @@ import java.util.HashMap;
 
 @Data
 public class BookModel implements MappableModel<Book> {
-  public final String name = "Book";
-  private final Repository<Book> associatedRepository = DIManager.getInstance().get("BookRepository");
+  private final String name = "Book";
 
   private Integer id;
   @NonNull
@@ -30,15 +25,6 @@ public class BookModel implements MappableModel<Book> {
 
   public BookModel(Book book) {
     this.data = book;
-  }
-
-  public BookModel(Integer id) throws InvalidStorageReferenceException, UnknownModelException {
-    this.id = id;
-    var foundModel = this.associatedRepository.findById(id);
-    if (foundModel.isEmpty()) {
-      throw new InvalidStorageReferenceException(this.getName(), id);
-    }
-    this.data = foundModel.get().getData();
   }
 
   public void setData(@NonNull Book data) {
