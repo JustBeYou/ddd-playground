@@ -2,17 +2,18 @@ package persistence.drivers.inmemory;
 
 import persistence.base.MappableModel;
 import persistence.base.Repository;
+import persistence.base.constraints.Constraint;
+import persistence.base.exceptions.CreationException;
 import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
-import persistence.base.exceptions.UnknownModelException;
+
+import persistence.base.exceptions.UpdateException;
 import persistence.base.models.ModelFactory;
-import persistence.base.models.ModelsFactoryDeprecated;
 import persistence.base.queries.*;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
 import persistence.base.serialization.FieldsMap;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -23,8 +24,9 @@ public class InMemoryRepository<T> implements Repository<T> {
   private final ModelFactory<T> modelFactory;
   private final Map<Integer, T> store;
   private final String modelName;
+  private final Collection<RuntimeConstraint<T>> constraints;
   private Integer nextId;
-  private RepoFinder repoFinder;
+  private final RepoFinder repoFinder;
 
   public InMemoryRepository(ModelFactory<T> modelFactory, RepoFinder repoFinder) {
     this.modelFactory = modelFactory;
@@ -32,11 +34,29 @@ public class InMemoryRepository<T> implements Repository<T> {
     this.store = InMemoryStore.getInstance().getStore(this.modelName);
     this.nextId = 1;
     this.repoFinder = repoFinder;
+    this.constraints = new ArrayList<>();
   }
 
   @Override
-  public MappableModel<T> create(T data) throws UnknownModelException {
+  public MappableModel<T> create(T data) throws CreationException {
     MappableModel<T> model = this.modelFactory.build(data);
+    for (var constraint: this.constraints) {
+      boolean good = true;
+      String message = null;
+      try {
+        if (!constraint.isSatisfied(model, this)) {
+          good = false;
+          message = constraint.getFailingMessage();
+        }
+      } catch (Exception ignored) {
+        good = false;
+        message = "Constraint checking thrown exception.";
+      }
+
+      if (!good) {
+        throw new CreationException(message);
+      }
+    }
 
     model.setId(this.nextId++);
     this.store.put(model.getId(), model.getData());
@@ -54,7 +74,7 @@ public class InMemoryRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Collection<MappableModel<T>> find(Query query) throws UnknownModelException {
+  public Collection<MappableModel<T>> find(Query query) {
     var result = new ArrayList<MappableModel<T>>();
     for (var entry : this.store.entrySet()) {
       var value = entry.getValue();
@@ -180,12 +200,12 @@ public class InMemoryRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Optional<MappableModel<T>> findOne(Query query) throws UnknownModelException {
+  public Optional<MappableModel<T>> findOne(Query query) {
     return this.find(query).stream().findFirst();
   }
 
   @Override
-  public Optional<MappableModel<T>> findById(Integer id) throws UnknownModelException {
+  public Optional<MappableModel<T>> findById(Integer id) {
     if (this.store.containsKey(id)) {
       var data = this.store.get(id);
       var model = modelFactory.build(data);
@@ -196,9 +216,34 @@ public class InMemoryRepository<T> implements Repository<T> {
   }
 
   @Override
-  public void update(MappableModel<T> model, FieldsMap values) throws InvalidStorageReferenceException {
+  public boolean exists(Query query) {
+    var found = this.find(query);
+    return found.size() > 0;
+  }
+
+  @Override
+  public void update(MappableModel<T> model, FieldsMap values) throws InvalidStorageReferenceException, UpdateException {
     if (this.store.containsKey(model.getId())) {
       model.unmapIfSet(model.getData(), values);
+
+      for (var constraint: this.constraints) {
+        boolean good = true;
+        String message = null;
+        try {
+          if (!constraint.isSatisfied(model, this)) {
+            good = false;
+            message = constraint.getFailingMessage();
+          }
+        } catch (Exception ignored) {
+          good = false;
+          message = "Constraint checking thrown exception.";
+        }
+
+        if (!good) {
+          throw new UpdateException(message);
+        }
+      }
+
       this.store.put(model.getId(), model.getData());
     } else {
       throw new InvalidStorageReferenceException(model.getName(), model.getId());
@@ -206,7 +251,7 @@ public class InMemoryRepository<T> implements Repository<T> {
   }
 
   @Override
-  public void loadRelations(MappableModel<T> model) throws UnknownModelException {
+  public void loadRelations(MappableModel<T> model) {
     var relatedFields = model.getRelatedFields();
 
     for (var relatedField : relatedFields) {
@@ -254,6 +299,17 @@ public class InMemoryRepository<T> implements Repository<T> {
             // TODO: implement this
           }
         }
+      }
+    }
+  }
+
+  @Override
+  public void addConstraint(Constraint constraint, Field field) {
+    if (constraint == Constraint.UNIQUE) {
+      var newConstraint = new Unique<T>(field);
+      boolean already = this.constraints.contains(newConstraint);
+      if (!already) {
+        this.constraints.add(newConstraint);
       }
     }
   }

@@ -10,6 +10,12 @@ public class Field {
   private final FieldType type;
   private final String value;
 
+  public Field(String name) {
+    this.name = name;
+    this.type = FieldType.Auto;
+    this.value = null;
+  }
+
   public Field(String name, FieldType type) {
     this.name = name;
     this.type = type;

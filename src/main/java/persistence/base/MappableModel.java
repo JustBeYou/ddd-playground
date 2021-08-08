@@ -9,6 +9,5 @@ public interface MappableModel<T> extends Model<T>, Mappable<T> {
     return new RelatedField[]{};
   }
 
-  default void loadRelationField(String field, Object object) {
-  }
+  default void loadRelationField(String field, Object object) { }
 }

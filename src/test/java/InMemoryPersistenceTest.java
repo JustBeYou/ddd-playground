@@ -4,10 +4,9 @@ import domain.Country;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import persistence.base.Repository;
-import persistence.base.exceptions.InvalidQueryOperation;
-import persistence.base.exceptions.InvalidStorageReferenceException;
-import persistence.base.exceptions.NullStorageReferenceException;
-import persistence.base.exceptions.UnknownModelException;
+import persistence.base.constraints.Constraint;
+import persistence.base.exceptions.*;
+
 import persistence.base.models.Model;
 import persistence.base.queries.Query;
 import persistence.base.queries.QueryNode;
@@ -29,11 +28,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InMemoryPersistenceTest {
   static Repository<Book> bookRepo;
   static Repository<Author> authorRepo;
+  static int cnt = 0;
 
   @BeforeAll
-  static void setup() throws UnknownModelException {
+  static void setup() throws CreationException {
     authorRepo = new InMemoryRepository<>(new AuthorModelFactory(), new InMemoryRepoFinder());
     bookRepo = new InMemoryRepository<>(new BookModelFactory(), new InMemoryRepoFinder());
+
+    authorRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
+    bookRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
 
     var author = new Author("Misu", Country.Romania);
     authorRepo.create(author);
@@ -41,7 +44,7 @@ public class InMemoryPersistenceTest {
 
   private Book createBook() {
     return new Book(
-      "test",
+      "test" + cnt++,
       "123-123-123",
       "3 May 2015",
       "Misu"
@@ -49,7 +52,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldAssignId() throws UnknownModelException, InvalidStorageReferenceException {
+  void shouldAssignId() throws InvalidStorageReferenceException, CreationException, UpdateException {
     var bookModel = new BookModel(createBook());
     assertNull(bookModel.getId());
     bookRepo.save(bookModel);
@@ -57,7 +60,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldCreateEntity() throws UnknownModelException {
+  void shouldCreateEntity() throws CreationException {
     var book = createBook();
     var bookModel = bookRepo.create(book);
     assertNotNull(bookModel.getId());
@@ -65,7 +68,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldFindEntityById() throws UnknownModelException {
+  void shouldFindEntityById() throws CreationException {
     var bookModel = bookRepo.create(createBook());
     var foundBookModel = bookRepo.findById(bookModel.getId());
     assertTrue(foundBookModel.isPresent());
@@ -73,7 +76,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldUpdateEntity() throws UnknownModelException, InvalidStorageReferenceException, NullStorageReferenceException {
+  void shouldUpdateEntity() throws InvalidStorageReferenceException, CreationException, UpdateException {
     var bookModel = bookRepo.create(createBook());
     bookModel.getData().setName("FAKE");
     bookRepo.save(bookModel);
@@ -83,7 +86,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldDeleteEntity() throws UnknownModelException, NullStorageReferenceException, InvalidStorageReferenceException {
+  void shouldDeleteEntity() throws InvalidStorageReferenceException, CreationException {
     var bookModel = bookRepo.create(createBook());
     bookRepo.delete(bookModel);
     var foundBookModel = bookRepo.findById(bookModel.getId());
@@ -91,7 +94,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldFindEntityByQuery() throws UnknownModelException, InvalidQueryOperation {
+  void shouldFindEntityByQuery() throws InvalidQueryOperation, CreationException {
     var queryNodeFactory = new QueryNodeFactory();
     var query = new Query(queryNodeFactory.buildOr(new QueryNode[]{
       queryNodeFactory.buildClause(new Field("ISBN", "0001"), QueryOperation.Like),
@@ -116,7 +119,7 @@ public class InMemoryPersistenceTest {
   }
 
   @Test
-  void shouldLoadRelation() throws UnknownModelException, NullStorageReferenceException {
+  void shouldLoadRelation() throws CreationException {
     var bookModel = bookRepo.create(new Book(
       "relation_test",
       "123-123-123",
