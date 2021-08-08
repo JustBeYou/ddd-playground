@@ -10,11 +10,17 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface Repository<T> {
-    MappableModel<T> create(T model) throws UnknownModelException;
-    void delete(MappableModel<T> model) throws InvalidStorageReferenceException;
-    Collection<MappableModel<T>> find(Query query) throws UnknownModelException, InvalidQueryOperation;
-    Optional<MappableModel<T>> findOne(Query query) throws UnknownModelException;
-    Optional<MappableModel<T>> findById(Integer id) throws UnknownModelException;
-    void update(MappableModel<T> model, FieldsMap values) throws InvalidStorageReferenceException;
-    void loadRelations(MappableModel<T> model) throws UnknownModelException;
+  MappableModel<T> create(T model) throws UnknownModelException;
+
+  void delete(MappableModel<T> model) throws InvalidStorageReferenceException;
+
+  Collection<MappableModel<T>> find(Query query) throws UnknownModelException, InvalidQueryOperation;
+
+  Optional<MappableModel<T>> findOne(Query query) throws UnknownModelException;
+
+  Optional<MappableModel<T>> findById(Integer id) throws UnknownModelException;
+
+  void update(MappableModel<T> model, FieldsMap values) throws InvalidStorageReferenceException;
+
+  void loadRelations(MappableModel<T> model) throws UnknownModelException;
 }

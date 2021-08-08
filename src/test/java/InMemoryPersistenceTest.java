@@ -14,7 +14,7 @@ import persistence.base.queries.QueryNodeFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
-import persistence.inmemory.InMemoryRepository;
+import persistence.drivers.inmemory.InMemoryRepository;
 import persistence.models.BookModel;
 import persistence.models.BooksModelsFactory;
 
@@ -24,6 +24,19 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryPersistenceTest {
+  @BeforeAll
+  static void setup() throws UnknownModelException {
+    var booksModelsFactory = new BooksModelsFactory();
+    var diManager = DIManager.getInstance();
+    var bookRepo = new InMemoryRepository<Book>("Book", booksModelsFactory);
+    var authorRepo = new InMemoryRepository<Author>("Author", booksModelsFactory);
+    diManager.register("BookRepository", bookRepo);
+    diManager.register("AuthorRepository", authorRepo);
+
+    var author = new Author("Misu", Country.Romania);
+    authorRepo.create(author);
+  }
+
   private Book createBook() {
     return new Book(
       "test",
@@ -39,19 +52,6 @@ public class InMemoryPersistenceTest {
 
   private InMemoryRepository<Author> getAuthorRepo() {
     return DIManager.getInstance().get("AuthorRepository");
-  }
-
-  @BeforeAll
-  static void setup() throws UnknownModelException {
-    var booksModelsFactory = new BooksModelsFactory();
-    var diManager = DIManager.getInstance();
-    var bookRepo = new InMemoryRepository<Book>("Book", booksModelsFactory);
-    var authorRepo = new InMemoryRepository<Author>("Author", booksModelsFactory);
-    diManager.register("BookRepository", bookRepo);
-    diManager.register("AuthorRepository", authorRepo);
-
-    var author = new Author("Misu", Country.Romania);
-    authorRepo.create(author);
   }
 
   @Test

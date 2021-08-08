@@ -7,6 +7,6 @@ import java.util.Map;
 
 @Data
 public class FieldsMap {
-    @NonNull Map<String, Field> map;
-    @NonNull String name;
+  @NonNull Map<String, Field> map;
+  @NonNull String name;
 }

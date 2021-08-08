@@ -5,7 +5,8 @@ import domain.Author;
 import domain.Country;
 import lombok.Data;
 import lombok.NonNull;
-import persistence.base.*;
+import persistence.base.MappableModel;
+import persistence.base.Repository;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UnknownModelException;
 import persistence.base.relations.RelatedField;
@@ -25,7 +26,8 @@ public class AuthorModel implements MappableModel<Author> {
   private final Repository<Author> associatedRepository = DIManager.getInstance().get("AuthorRepository");
 
   private Integer id;
-  @NonNull private Author data;
+  @NonNull
+  private Author data;
 
   public AuthorModel(Author author) {
     this.data = author;
