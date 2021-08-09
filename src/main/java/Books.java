@@ -1,7 +1,8 @@
-import org.jboss.weld.environment.se.Weld;
+import ui.Application;
 
 public class Books {
   public static void main(String[] args) {
-    Weld weld = new Weld();
+    var app = new Application();
+    app.run();
   }
 }
