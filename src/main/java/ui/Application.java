@@ -1,50 +1,51 @@
 package ui;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 public class Application {
   private final Executor executor;
+  private final ApplicationInput appInput;
+  private final ApplicationOutput appOutput;
 
-  public Application() {
-    executor = new Executor(new Command[]{
+  public Application(ApplicationInput appInput, ApplicationOutput appOutput) {
+    this.appInput = appInput;
+    this.appOutput = appOutput;
+
+    this.executor = new Executor(new Command[]{
       new Command(
         "/login", "<user> <password>",
         "Creates a new session.",
         (String[] args) -> {
         return CommandStatus.SUCCESS;
       })
-    });
+    }, this.appOutput);
   }
 
   public void run() {
-    System.out.println("--- Library management ---");
+    appOutput.writeLine("--- Library management ---");
 
-    String input;
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    String inputLine;
     while (true) {
       try {
-        System.out.print("> ");
-        input = reader.readLine();
+        appOutput.write("> ");
+        inputLine = appInput.readLine();
 
-        if (input.startsWith("help")) {
-          var cmd = input.substring(5);
+        if (inputLine.startsWith("help")) {
+          var cmd = inputLine.substring(5);
           executor.help(cmd);
-        } else if (input.startsWith("describe")) {
-          var cmd = input.substring(9);
+        } else if (inputLine.startsWith("describe")) {
+          var cmd = inputLine.substring(9);
           executor.describeModule(cmd);
-        } else if (input.startsWith("exit")) {
+        } else if (inputLine.startsWith("exit")) {
           break;
         } else {
-          executor.run(input);
+          executor.run(inputLine);
         }
       } catch (CommandNotFoundException exception) {
-        System.out.println("Command not found. Use: ");
-        System.out.println("- help /some/command/here");
-        System.out.println("- describe /some/module/here");
-        System.out.println("- /some/command/here arg1 arg2 arg3");
+        appOutput.writeLine("Command not found. Use: ");
+        appOutput.writeLine("- help /some/command/here");
+        appOutput.writeLine("- describe /some/module/here");
+        appOutput.writeLine("- /some/command/here arg1 arg2 arg3");
       } catch (Exception exception) {
-        System.out.println("Something went wrong: " + exception.getMessage());
+        appOutput.writeLine("Something went wrong: " + exception.getMessage());
       }
     }
   }
