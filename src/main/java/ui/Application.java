@@ -14,6 +14,10 @@ public class Application {
                 "/login", "<user> <password>",
                 "Creates a new session.",
                 (String[] args) -> {
+                    var user = args[0];
+                    var password = args[1];
+
+                    appOutput.writeLine(user + " " + password);
                     return CommandStatus.SUCCESS;
                 })
         }, this.appOutput);
@@ -28,10 +32,10 @@ public class Application {
                 appOutput.write("> ");
                 inputLine = appInput.readLine();
 
-                if (inputLine.startsWith("help")) {
+                if (inputLine.startsWith("help ")) {
                     var cmd = inputLine.substring(5);
                     executor.help(cmd);
-                } else if (inputLine.startsWith("describe")) {
+                } else if (inputLine.startsWith("describe ")) {
                     var cmd = inputLine.substring(9);
                     executor.describeModule(cmd);
                 } else if (inputLine.startsWith("exit")) {
