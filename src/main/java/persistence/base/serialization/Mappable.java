@@ -3,11 +3,11 @@ package persistence.base.serialization;
 import java.util.Collection;
 
 public interface Mappable<T> {
-  FieldsMap map();
+    FieldsMap map();
 
-  T unmap(FieldsMap map);
+    T unmap(FieldsMap map);
 
-  T unmapIfSet(T existingData, FieldsMap map);
+    T unmapIfSet(T existingData, FieldsMap map);
 
-  Collection<Field> getFields();
+    Collection<Field> getFields();
 }

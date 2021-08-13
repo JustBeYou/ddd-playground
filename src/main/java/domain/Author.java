@@ -8,16 +8,16 @@ import java.util.Collection;
 
 @Data
 public class Author {
-  @NonNull
-  private String name;
-  private Country country;
+    @NonNull
+    private String name;
+    private Country country;
 
-  @NonNull
-  private Collection<Book> books;
+    @NonNull
+    private Collection<Book> books;
 
-  public Author(@NonNull String name, Country country) {
-    this.name = name;
-    this.country = country;
-    this.books = new ArrayList<>();
-  }
+    public Author(@NonNull String name, Country country) {
+        this.name = name;
+        this.country = country;
+        this.books = new ArrayList<>();
+    }
 }

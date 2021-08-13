@@ -6,13 +6,13 @@ import persistence.base.models.ModelFactory;
 
 public class BookModelFactory implements ModelFactory<Book> {
 
-  @Override
-  public String getModelName() {
-    return "Book";
-  }
+    @Override
+    public String getModelName() {
+        return "Book";
+    }
 
-  @Override
-  public MappableModel<Book> build(Book data) {
-    return new BookModel(data);
-  }
+    @Override
+    public MappableModel<Book> build(Book data) {
+        return new BookModel(data);
+    }
 }

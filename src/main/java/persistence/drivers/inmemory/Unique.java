@@ -11,32 +11,32 @@ import persistence.base.serialization.Field;
 
 @EqualsAndHashCode
 public class Unique<T> implements RuntimeConstraint<T> {
-  private final Field field;
+    private final Field field;
 
-  public Unique(Field field) {
-    this.field = field;
-  }
+    public Unique(Field field) {
+        this.field = field;
+    }
 
-  @Override
-  public boolean isSatisfied(MappableModel<T> model, Repository<T> repository) throws InvalidQueryOperation {
-    var queryNodeFactory = new QueryNodeFactory();
-    var query = new Query(
-      queryNodeFactory.buildClause(
-        new Field(
-          this.field.getName(),
-          this.field.getType(),
-          model.map().getMap().get(this.field.getName()).getValue()
-        ),
-        QueryOperation.IsSame
-      )
-    );
-    var found = repository.find(query);
-    return model.getId() == null && found.isEmpty() ||
-      model.getId() != null && found.size() == 1;
-  }
+    @Override
+    public boolean isSatisfied(MappableModel<T> model, Repository<T> repository) throws InvalidQueryOperation {
+        var queryNodeFactory = new QueryNodeFactory();
+        var query = new Query(
+            queryNodeFactory.buildClause(
+                new Field(
+                    this.field.getName(),
+                    this.field.getType(),
+                    model.map().getMap().get(this.field.getName()).getValue()
+                ),
+                QueryOperation.IsSame
+            )
+        );
+        var found = repository.find(query);
+        return model.getId() == null && found.isEmpty() ||
+            model.getId() != null && found.size() == 1;
+    }
 
-  @Override
-  public String getFailingMessage() {
-    return "Field value is not unique";
-  }
+    @Override
+    public String getFailingMessage() {
+        return "Field value is not unique";
+    }
 }

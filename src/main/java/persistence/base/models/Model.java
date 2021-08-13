@@ -1,13 +1,13 @@
 package persistence.base.models;
 
 public interface Model<T> {
-  String getName();
+    String getName();
 
-  Integer getId();
+    Integer getId();
 
-  void setId(Integer id);
+    void setId(Integer id);
 
-  T getData();
+    T getData();
 
-  void setData(T data);
+    void setData(T data);
 }
