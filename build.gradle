@@ -19,12 +19,6 @@ dependencies {
 
   testCompileOnly 'org.projectlombok:lombok:1.18.20'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
-
-  implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.22.1'
-
-  implementation 'javax.inject:javax.inject:1'
-  compileOnly 'javax.enterprise:cdi-api:2.0-EDR2'
-  implementation 'org.jboss.weld.se:weld-se-core:4.0.2.Final'
 }
 
 test {
