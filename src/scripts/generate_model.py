@@ -123,7 +123,11 @@ for field in fields:
 
     get_fields += " "*8 + f'fields.add(new Field("{field["name"]}", FieldType.{ftype}));\n'
 
-map_get += " "*8 + f"this.data = new {model_name}({', '.join(simple_field_names)});"
+
+should_pass_copy = ""
+if model_name in models_config["with_copy"]:
+    should_pass_copy = ", true"
+map_get += " "*8 + f"this.data = new {model_name}({', '.join(simple_field_names)}{should_pass_copy});"
 
 load_relations = ""
 
