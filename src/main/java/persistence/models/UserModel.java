@@ -8,9 +8,9 @@ package persistence.models;
   DO NOT MODIFY!
  */
 
-import domain.Book;
-import domain.Author;
-import persistence.models.AuthorModel;
+import domain.User;
+import domain.Right;
+import persistence.models.RightModel;
 
 
 import lombok.Data;
@@ -28,18 +28,18 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Data
-public class BookModel implements MappableModel<Book> {
-    private final String name = "Book";
+public class UserModel implements MappableModel<User> {
+    private final String name = "User";
 
     private Integer id;
     @NonNull
-    private Book data;
+    private User data;
 
-    public BookModel(Book data) {
+    public UserModel(User data) {
         this.data = data;
     }
 
-    public void setData(@NonNull Book data) {
+    public void setData(@NonNull User data) {
         this.data = data;
     }
 
@@ -50,21 +50,19 @@ public class BookModel implements MappableModel<Book> {
             map.put("id", new Field("id", FieldType.Integer, this.id.toString()));
         }
         map.put("name", new Field("name", FieldType.String, this.data.getName().toString()));
-        map.put("ISBN", new Field("ISBN", FieldType.String, this.data.getISBN().toString()));
-        map.put("publishedAt", new Field("publishedAt", FieldType.String, this.data.getPublishedAt().toString()));
-        map.put("authorName", new Field("authorName", FieldType.String, this.data.getAuthorName().toString()));
+        map.put("passwordHash", new Field("passwordHash", FieldType.String, this.data.getPasswordHash().toString()));
+        map.put("email", new Field("email", FieldType.String, this.data.getEmail().toString()));
 
-        return new FieldsMap(map, "Book");
+        return new FieldsMap(map, "User");
     }
 
     @Override
-    public Book unmap(FieldsMap map) {
-        assert map.getName().equals("Book");
+    public User unmap(FieldsMap map) {
+        assert map.getName().equals("User");
         var name = map.getMap().get("name").getValue();
-        var ISBN = map.getMap().get("ISBN").getValue();
-        var publishedAt = map.getMap().get("publishedAt").getValue();
-        var authorName = map.getMap().get("authorName").getValue();
-        this.data = new Book(name, ISBN, publishedAt, authorName);
+        var passwordHash = map.getMap().get("passwordHash").getValue();
+        var email = map.getMap().get("email").getValue();
+        this.data = new User(name, passwordHash, email);
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -73,12 +71,11 @@ public class BookModel implements MappableModel<Book> {
     }
 
     @Override
-    public Book unmapIfSet(Book exitingData, FieldsMap map) {
-        assert map.getName().equals("Book");
+    public User unmapIfSet(User exitingData, FieldsMap map) {
+        assert map.getName().equals("User");
         if (!map.getMap().containsKey("name")) { map.getMap().put("name", new Field("name", FieldType.String, exitingData.getName().toString())); }
-        if (!map.getMap().containsKey("ISBN")) { map.getMap().put("ISBN", new Field("ISBN", FieldType.String, exitingData.getISBN().toString())); }
-        if (!map.getMap().containsKey("publishedAt")) { map.getMap().put("publishedAt", new Field("publishedAt", FieldType.String, exitingData.getPublishedAt().toString())); }
-        if (!map.getMap().containsKey("authorName")) { map.getMap().put("authorName", new Field("authorName", FieldType.String, exitingData.getAuthorName().toString())); }
+        if (!map.getMap().containsKey("passwordHash")) { map.getMap().put("passwordHash", new Field("passwordHash", FieldType.String, exitingData.getPasswordHash().toString())); }
+        if (!map.getMap().containsKey("email")) { map.getMap().put("email", new Field("email", FieldType.String, exitingData.getEmail().toString())); }
 
         return this.unmap(map);
     }
@@ -88,17 +85,23 @@ public class BookModel implements MappableModel<Book> {
         var fields = new ArrayList<Field>();
         fields.add(new Field("id", FieldType.Integer));
         fields.add(new Field("name", FieldType.String));
-        fields.add(new Field("ISBN", FieldType.String));
-        fields.add(new Field("publishedAt", FieldType.String));
-        fields.add(new Field("authorName", FieldType.String));
-        fields.add(new Field("author", FieldType.Reference));
+        fields.add(new Field("passwordHash", FieldType.String));
+        fields.add(new Field("email", FieldType.String));
+        fields.add(new Field("rights", FieldType.Reference));
 
         return fields;
     }
 
     @Override
     public void loadRelationField(String field, Object object) {
-        if ("author".equals(field)){         this.getData().setAuthor((Author) object); }
+        if ("rights".equals(field)){ 
+            var entities = (Collection<RightModel>) object; 
+            var data = this.data.getRights();
+            if (!data.isEmpty()) {
+                data.clear();
+            } 
+            data.addAll(entities.stream().map(entity -> entity.getData()).collect(Collectors.toList()));
+         }
 
     }
 

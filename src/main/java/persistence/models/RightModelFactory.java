@@ -8,19 +8,19 @@ package persistence.models;
   DO NOT MODIFY!
  */
 
-import domain.Book;
+import domain.Right;
 import persistence.base.MappableModel;
 import persistence.base.models.ModelFactory;
 
-public class BookModelFactory implements ModelFactory<Book> {
+public class RightModelFactory implements ModelFactory<Right> {
 
     @Override
     public String getModelName() {
-        return "Book";
+        return "Right";
     }
 
     @Override
-    public MappableModel<Book> build(Book data) {
-        return new BookModel(data);
+    public MappableModel<Right> build(Right data) {
+        return new RightModel(data);
     }
 }

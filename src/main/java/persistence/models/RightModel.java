@@ -8,10 +8,8 @@ package persistence.models;
   DO NOT MODIFY!
  */
 
-import domain.Author;
-import domain.Country;
-import domain.Book;
-import persistence.models.BookModel;
+import domain.Right;
+import domain.RightType;
 
 
 import lombok.Data;
@@ -29,18 +27,18 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Data
-public class AuthorModel implements MappableModel<Author> {
-    private final String name = "Author";
+public class RightModel implements MappableModel<Right> {
+    private final String name = "Right";
 
     private Integer id;
     @NonNull
-    private Author data;
+    private Right data;
 
-    public AuthorModel(Author data) {
+    public RightModel(Right data) {
         this.data = data;
     }
 
-    public void setData(@NonNull Author data) {
+    public void setData(@NonNull Right data) {
         this.data = data;
     }
 
@@ -50,18 +48,18 @@ public class AuthorModel implements MappableModel<Author> {
         if (this.id != null) {
             map.put("id", new Field("id", FieldType.Integer, this.id.toString()));
         }
-        map.put("name", new Field("name", FieldType.String, this.data.getName().toString()));
-        map.put("country", new Field("country", FieldType.String, this.data.getCountry().toString()));
+        map.put("type", new Field("type", FieldType.String, this.data.getType().toString()));
+        map.put("userName", new Field("userName", FieldType.String, this.data.getUserName().toString()));
 
-        return new FieldsMap(map, "Author");
+        return new FieldsMap(map, "Right");
     }
 
     @Override
-    public Author unmap(FieldsMap map) {
-        assert map.getName().equals("Author");
-        var name = map.getMap().get("name").getValue();
-        var country = Country.valueOf(map.getMap().get("country").getValue());
-        this.data = new Author(name, country);
+    public Right unmap(FieldsMap map) {
+        assert map.getName().equals("Right");
+        var type = RightType.valueOf(map.getMap().get("type").getValue());
+        var userName = map.getMap().get("userName").getValue();
+        this.data = new Right(type, userName);
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -70,10 +68,10 @@ public class AuthorModel implements MappableModel<Author> {
     }
 
     @Override
-    public Author unmapIfSet(Author exitingData, FieldsMap map) {
-        assert map.getName().equals("Author");
-        if (!map.getMap().containsKey("name")) { map.getMap().put("name", new Field("name", FieldType.String, exitingData.getName().toString())); }
-        if (!map.getMap().containsKey("country")) { map.getMap().put("country", new Field("country", FieldType.String, exitingData.getCountry().toString())); }
+    public Right unmapIfSet(Right exitingData, FieldsMap map) {
+        assert map.getName().equals("Right");
+        if (!map.getMap().containsKey("type")) { map.getMap().put("type", new Field("type", FieldType.String, exitingData.getType().toString())); }
+        if (!map.getMap().containsKey("userName")) { map.getMap().put("userName", new Field("userName", FieldType.String, exitingData.getUserName().toString())); }
 
         return this.unmap(map);
     }
@@ -82,23 +80,14 @@ public class AuthorModel implements MappableModel<Author> {
     public Collection<Field> getFields() {
         var fields = new ArrayList<Field>();
         fields.add(new Field("id", FieldType.Integer));
-        fields.add(new Field("name", FieldType.String));
-        fields.add(new Field("country", FieldType.String));
-        fields.add(new Field("books", FieldType.Reference));
+        fields.add(new Field("type", FieldType.String));
+        fields.add(new Field("userName", FieldType.String));
 
         return fields;
     }
 
     @Override
     public void loadRelationField(String field, Object object) {
-        if ("books".equals(field)){ 
-            var entities = (Collection<BookModel>) object; 
-            var data = this.data.getBooks();
-            if (!data.isEmpty()) {
-                data.clear();
-            } 
-            data.addAll(entities.stream().map(entity -> entity.getData()).collect(Collectors.toList()));
-         }
 
     }
 

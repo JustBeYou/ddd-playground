@@ -2,6 +2,7 @@ package persistence.drivers.inmemory;
 
 import persistence.base.MappableModel;
 import persistence.base.Repository;
+import persistence.base.RepositoryFactory;
 import persistence.base.constraints.Constraint;
 import persistence.base.exceptions.CreationException;
 import persistence.base.exceptions.InvalidQueryOperation;
@@ -24,15 +25,15 @@ public class InMemoryRepository<T> implements Repository<T> {
     private final Map<Integer, T> store;
     private final String modelName;
     private final Collection<RuntimeConstraint<T>> constraints;
-    private final RepoFinder repoFinder;
+    private final RepositoryFactory repositoryFactory;
     private Integer nextId;
 
-    public InMemoryRepository(ModelFactory<T> modelFactory, RepoFinder repoFinder) {
+    public InMemoryRepository(ModelFactory<T> modelFactory, RepositoryFactory repositoryFactory) {
         this.modelFactory = modelFactory;
         this.modelName = modelFactory.getModelName();
         this.store = InMemoryStore.getInstance().getStore(this.modelName);
         this.nextId = 1;
-        this.repoFinder = repoFinder;
+        this.repositoryFactory = repositoryFactory;
         this.constraints = new ArrayList<>();
     }
 
@@ -261,7 +262,7 @@ public class InMemoryRepository<T> implements Repository<T> {
                 isSelfSource = false;
             }
 
-            var relatedRepo = this.repoFinder.getRepo(modelToLoad);
+            var relatedRepo = this.repositoryFactory.build(modelToLoad);
             switch (relatedField.getRelationType()) {
                 case ONE_OWNS_MANY -> {
                     if (isSelfSource) {

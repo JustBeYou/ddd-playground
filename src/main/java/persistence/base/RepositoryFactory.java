@@ -1,5 +1,7 @@
-package persistence.drivers.inmemory;
+package persistence.base;
 
-public interface RepoFinder {
-    InMemoryRepository<Object> getRepo(String name);
+import persistence.drivers.inmemory.InMemoryRepository;
+
+public interface RepositoryFactory {
+    InMemoryRepository<Object> build(String name);
 }
