@@ -5,6 +5,6 @@ import lombok.NonNull;
 
 @Data
 public class Right {
-    @NonNull RightType type;
-    @NonNull String userName;
+    @NonNull private RightType type;
+    @NonNull private String userName;
 }

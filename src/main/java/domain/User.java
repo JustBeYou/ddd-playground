@@ -11,10 +11,10 @@ import java.util.Collection;
 
 @Data
 public class User {
-    @NonNull String name;
-    @NonNull String passwordHash;
-    @NonNull String email;
-    @NonNull Collection<Right> rights;
+    @NonNull private String name;
+    @NonNull private String passwordHash;
+    @NonNull private String email;
+    @NonNull private Collection<Right> rights;
 
     public User(@NonNull String name, @NonNull String password, @NonNull String email) {
         this.name = name;
@@ -29,7 +29,7 @@ public class User {
 
     public boolean hasRight(Right right) {
         for (var existingRight : this.rights) {
-            if (existingRight.type.equals(right.type)) {
+            if (existingRight.getType().equals(right.getType())) {
                 return true;
             }
         }

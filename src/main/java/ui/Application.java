@@ -1,13 +1,20 @@
 package ui;
 
+import auth.Identity;
+import persistence.models.InMemoryRepositoryFactory;
+
 public class Application {
     private final Executor executor;
     private final ApplicationInput appInput;
     private final ApplicationOutput appOutput;
+    private Identity identity;
 
     public Application(ApplicationInput appInput, ApplicationOutput appOutput) {
         this.appInput = appInput;
         this.appOutput = appOutput;
+
+        var repoFactory = new InMemoryRepositoryFactory();
+        var userRepo = repoFactory.build("User");
 
         this.executor = new Executor(new Command[]{
             new Command(
@@ -17,7 +24,6 @@ public class Application {
                     var user = args[0];
                     var password = args[1];
 
-                    appOutput.writeLine(user + " " + password);
                     return CommandStatus.SUCCESS;
                 })
         }, this.appOutput);

@@ -16,7 +16,7 @@ import persistence.base.queries.QueryNodeFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
-import persistence.drivers.inmemory.InMemoryRepoFinder;
+import persistence.models.InMemoryRepositoryFactory;
 import persistence.drivers.inmemory.InMemoryRepository;
 import persistence.models.AuthorModelFactory;
 import persistence.models.BookModel;
@@ -34,8 +34,8 @@ public class InMemoryPersistenceTest {
 
     @BeforeAll
     static void setup() throws CreationException {
-        authorRepo = new InMemoryRepository<>(new AuthorModelFactory(), new InMemoryRepoFinder());
-        bookRepo = new InMemoryRepository<>(new BookModelFactory(), new InMemoryRepoFinder());
+        authorRepo = new InMemoryRepository<>(new AuthorModelFactory(), new InMemoryRepositoryFactory());
+        bookRepo = new InMemoryRepository<>(new BookModelFactory(), new InMemoryRepositoryFactory());
 
         authorRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
         bookRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
