@@ -17,10 +17,21 @@ public class User {
     @NonNull private Collection<Right> rights;
 
     public User(@NonNull String name, @NonNull String password, @NonNull String email) {
-        this.name = name;
-        this.passwordHash = this.hash(password);
-        this.email = email;
-        this.rights = new ArrayList<>();
+        this(name, password, email, false);
+    }
+
+    public User(@NonNull String name, @NonNull String password, @NonNull String email, boolean copy) {
+        if (copy) {
+            this.name = name;
+            this.passwordHash = password;
+            this.email = email;
+            this.rights = new ArrayList<>();
+        } else {
+            this.name = name;
+            this.passwordHash = this.hash(password);
+            this.email = email;
+            this.rights = new ArrayList<>();
+        }
     }
 
     public boolean isPasswordValid(String password) {
@@ -28,8 +39,12 @@ public class User {
     }
 
     public boolean hasRight(Right right) {
+        return hasRight(right.getType());
+    }
+
+    public boolean hasRight(RightType right) {
         for (var existingRight : this.rights) {
-            if (existingRight.getType().equals(right.getType())) {
+            if (existingRight.getType().equals(right)) {
                 return true;
             }
         }

@@ -2,6 +2,7 @@ package ui;
 
 import lombok.Data;
 import lombok.NonNull;
+import services.SessionStatefulService;
 
 import java.util.Arrays;
 
@@ -9,6 +10,7 @@ import java.util.Arrays;
 public class Executor {
     @NonNull Command[] commands;
     @NonNull ApplicationOutput appOutput;
+    @NonNull SessionStatefulService sessionService;
 
     public void help(String path) throws CommandNotFoundException {
         var command = findCommand(path);
@@ -20,7 +22,7 @@ public class Executor {
         var parsedPath = parseCommand(path);
         appOutput.writeLine("Commands under: " + path);
         for (var command : commands) {
-            if (command.isInPath(parsedPath)) {
+            if (command.isInPath(parsedPath) && isAvailable(command)) {
                 appOutput.writeLine("- " + String.join("/", command.getPath()) + ": " + command.getDescription());
             }
         }
@@ -47,11 +49,34 @@ public class Executor {
     private Command findCommand(String path) throws CommandNotFoundException {
         var parsedPath = parseCommand(path);
         for (var command : commands) {
-            if (command.isSamePath(parsedPath)) {
+            if (command.isSamePath(parsedPath) && isAvailable(command)) {
                 return command;
             }
         }
         throw new CommandNotFoundException(path);
+    }
+
+    private boolean isAvailable(Command command) {
+        var isLoggedIn = sessionService.isLoggedIn();
+
+        if (!isLoggedIn && command.necessaryRights != null) {
+            return false;
+        }
+
+        if (isLoggedIn && command.necessaryRights == null) {
+            return false;
+        }
+
+        if (command.necessaryRights != null) {
+            var user = sessionService.getCurrentUser();
+            for (var right : command.necessaryRights) {
+                if (!user.hasRight(right)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private String[] parseCommand(String path) {

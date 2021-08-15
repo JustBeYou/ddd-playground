@@ -2,23 +2,26 @@ package services;
 
 import auth.Identity;
 import auth.InvalidLogin;
+import domain.Right;
+import domain.RightType;
 import domain.User;
+import lombok.Data;
 import persistence.base.Repository;
 import persistence.base.exceptions.CreationException;
 
+@Data
 public class AuthService {
   private final Repository<User> userRepository;
+  private final Repository<Right> rightRepository;
 
-  public AuthService(Repository<User> userRepository) {
-    this.userRepository = userRepository;
-  }
-
-  Identity login(String user, String password) throws InvalidLogin {
+  public Identity login(String user, String password) throws InvalidLogin {
     return new Identity(user, password, userRepository);
   }
 
-  void register(String user, String password, String email) throws CreationException {
+  public void register(String user, String password, String email) throws CreationException {
     var newUser = new User(user, password, email);
     userRepository.create(newUser);
+    var defaultRight = new Right(RightType.BORROW_BOOKS, user);
+    rightRepository.create(defaultRight);
   }
 }

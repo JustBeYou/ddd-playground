@@ -32,6 +32,7 @@ public class Identity {
       throw new InvalidLogin();
     }
 
+    userRepository.loadRelations(userObj);
     this.currentUser = userObj.getData();
   }
 }

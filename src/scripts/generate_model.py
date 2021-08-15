@@ -112,10 +112,12 @@ for field in fields:
         getter = f"this.data.get{capitalized}().toString()"
         map_put += " "*8 + f'map.put("{field["name"]}", new Field("{field["name"]}", FieldType.{ftype}, {getter}));\n'
 
-        if field["type"] not in models_config["enums"]:
-            map_get += " "*8 + f'var {field["name"]} = map.getMap().get("{field["name"]}").getValue();\n'
-        else:
+        if field["type"] in models_config["enums"] or field["type"] != "String":
             map_get += " "*8 + f'var {field["name"]} = {field["type"]}.valueOf(map.getMap().get("{field["name"]}").getValue());\n'
+        else:
+            map_get += " "*8 + f'var {field["name"]} = map.getMap().get("{field["name"]}").getValue();\n'
+
+
 
         map_get_if_set += " "*8 + f'if (!map.getMap().containsKey("{field["name"]}")) ' +'{ '
         map_get_if_set += f'map.getMap().put("{field["name"]}", new Field("{field["name"]}", FieldType.{ftype}, exitingData.get{capitalized}().toString()));'

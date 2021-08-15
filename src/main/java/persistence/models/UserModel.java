@@ -62,7 +62,7 @@ public class UserModel implements MappableModel<User> {
         var name = map.getMap().get("name").getValue();
         var passwordHash = map.getMap().get("passwordHash").getValue();
         var email = map.getMap().get("email").getValue();
-        this.data = new User(name, passwordHash, email);
+        this.data = new User(name, passwordHash, email, true);
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -116,6 +116,15 @@ public class UserModel implements MappableModel<User> {
                 "Book",
                 "authorName",
                 new Field("author", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "User",
+                "name",
+                new Field("rights", FieldType.Reference),
+                "Right",
+                "userName",
+                new Field("user", FieldType.Reference)
             ),
         };
     }

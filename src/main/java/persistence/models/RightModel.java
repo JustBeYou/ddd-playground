@@ -103,6 +103,15 @@ public class RightModel implements MappableModel<Right> {
                 "authorName",
                 new Field("author", FieldType.Reference)
             ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "User",
+                "name",
+                new Field("rights", FieldType.Reference),
+                "Right",
+                "userName",
+                new Field("user", FieldType.Reference)
+            ),
         };
     }
 }
