@@ -6,10 +6,10 @@ TODO
 - [X] Initial implementation for in-memory storage
 - [X] Boilerplate for U/I and commands
 - [X] Boilerplate for testing the application
-- [ ] Create a code generator for models and model factories
+- [X] Create a code generator for models and model factories
 - [ ] Implement one to one relations
 - [ ] Implement saving the whole object including relations (repository.update)
-- [ ] Boilerplate for services
-- [ ] Implement login and register
-- [ ] Test login and register
+- [X] Boilerplate for services
+- [X] Implement login and register
+- [X] Test login and register
 
