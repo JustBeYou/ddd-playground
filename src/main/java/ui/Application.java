@@ -1,20 +1,15 @@
 package ui;
 
-import auth.Identity;
-import auth.InvalidLogin;
-import domain.Right;
-import domain.RightType;
-import domain.User;
-import lombok.Getter;
-import lombok.Setter;
+import domain.*;
 import persistence.base.Repository;
+import persistence.base.RepositoryFactory;
 import persistence.base.constraints.Constraint;
-import persistence.base.exceptions.CreationException;
 import persistence.base.serialization.Field;
-import persistence.drivers.inmemory.InMemoryRepository;
 import persistence.models.InMemoryRepositoryFactory;
 import services.AuthService;
 import services.SessionStatefulService;
+import ui.modules.AuthModule;
+import ui.modules.BooksModule;
 
 public class Application {
     private final Executor executor;
@@ -22,13 +17,18 @@ public class Application {
     private final ApplicationOutput appOutput;
     private final SessionStatefulService sessionService;
 
-    public Application(ApplicationInput appInput, ApplicationOutput appOutput) {
+    public Application(
+        ApplicationInput appInput,
+        ApplicationOutput appOutput,
+        RepositoryFactory repoFactory
+    ) {
         this.appInput = appInput;
         this.appOutput = appOutput;
 
-        var repoFactory = new InMemoryRepositoryFactory();
-        Repository<User> userRepo = repoFactory.build("User");
-        Repository<Right> rightRepo = repoFactory.build("Right");
+        Repository<User> userRepo = (Repository<User>) repoFactory.build("User");
+        Repository<Right> rightRepo = (Repository<Right>) repoFactory.build("Right");
+        Repository<Author> authorRepo = (Repository<Author>) repoFactory.build("Author");
+        Repository<Book> bookRepo = (Repository<Book>) repoFactory.build("Book");
         var authService = new AuthService(userRepo, rightRepo);
         sessionService = new SessionStatefulService(authService);
 
@@ -43,50 +43,13 @@ public class Application {
 
         }
 
-        this.executor = new Executor(new Command[]{
-            new Command(
-                "/login", "<user> <password>",
-                "Creates a new session.",
-                (String[] args) -> {
-                    var user = args[0];
-                    var password = args[1];
-
-                    try {
-                        sessionService.login(user, password);
-                    } catch (InvalidLogin ex) {
-                        appOutput.writeLine("Invalid login: " + ex.getMessage());
-                    }
-                    return CommandStatus.SUCCESS;
-                }, null),
-
-            new Command("/logout", "",
-                "Deletes the current session.",
-                (String[] args) -> {
-                    sessionService.logout();
-                    return CommandStatus.SUCCESS;
-                }, new RightType[]{}),
-
-            new Command("/register", "<user> <password> <email>",
-                "Registers a new reader user.",
-                (String[] args) -> {
-                    var user = args[0];
-                    var password = args[1];
-                    var email = args[2];
-
-                    try {
-                        authService.register(user, password, email);
-                    } catch (CreationException ex) {
-                        System.out.println("Couldn't register user: " + ex.getMessage());
-                    }
-                    return CommandStatus.SUCCESS;
-                }, null),
-
-            new Command("/books/add", "",
-                "Adds a new book to the library.",
-                (String[] args) -> {
-                    return CommandStatus.SUCCESS;
-                }, new RightType[]{RightType.MANAGE_BOOKS})
-        }, this.appOutput, this.sessionService);
+        this.executor = new Executor(appOutput, sessionService);
+        this.executor.registerModule(
+            new AuthModule(appOutput, sessionService, authService)
+        );
+        this.executor.registerModule(
+            new BooksModule(appOutput, authorRepo, bookRepo)
+        );
     }
 
     public void run() {

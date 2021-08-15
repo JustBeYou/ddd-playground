@@ -5,7 +5,7 @@ import persistence.base.MappableModel;
 import persistence.base.Repository;
 import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.queries.Query;
-import persistence.base.queries.QueryNodeFactory;
+import persistence.base.queries.QueryFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
 
@@ -19,7 +19,7 @@ public class Unique<T> implements RuntimeConstraint<T> {
 
     @Override
     public boolean isSatisfied(MappableModel<T> model, Repository<T> repository) throws InvalidQueryOperation {
-        var queryNodeFactory = new QueryNodeFactory();
+        var queryNodeFactory = new QueryFactory();
         var query = new Query(
             queryNodeFactory.buildClause(
                 new Field(

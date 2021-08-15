@@ -1,6 +1,7 @@
 import domain.Author;
 import domain.Book;
 import domain.Country;
+import domain.exceptions.InvalidISBN;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import persistence.base.Repository;
@@ -12,7 +13,7 @@ import persistence.base.exceptions.UpdateException;
 import persistence.base.models.Model;
 import persistence.base.queries.Query;
 import persistence.base.queries.QueryNode;
-import persistence.base.queries.QueryNodeFactory;
+import persistence.base.queries.QueryFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
@@ -44,17 +45,17 @@ public class InMemoryPersistenceTest {
         authorRepo.create(author);
     }
 
-    private Book createBook() {
+    private Book createBook() throws InvalidISBN {
         return new Book(
             "test" + cnt++,
-            "123-123-123",
+            "9783161484100",
             "3 May 2015",
             "Misu"
         );
     }
 
     @Test
-    void shouldAssignId() throws InvalidStorageReferenceException, CreationException, UpdateException {
+    void shouldAssignId() throws InvalidStorageReferenceException, CreationException, UpdateException, InvalidISBN {
         var bookModel = new BookModel(createBook());
         assertNull(bookModel.getId());
         bookRepo.save(bookModel);
@@ -62,7 +63,7 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldCreateEntity() throws CreationException {
+    void shouldCreateEntity() throws CreationException, InvalidISBN {
         var book = createBook();
         var bookModel = bookRepo.create(book);
         assertNotNull(bookModel.getId());
@@ -70,7 +71,7 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldFindEntityById() throws CreationException {
+    void shouldFindEntityById() throws CreationException, InvalidISBN {
         var bookModel = bookRepo.create(createBook());
         var foundBookModel = bookRepo.findById(bookModel.getId());
         assertTrue(foundBookModel.isPresent());
@@ -78,7 +79,7 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldUpdateEntity() throws InvalidStorageReferenceException, CreationException, UpdateException {
+    void shouldUpdateEntity() throws InvalidStorageReferenceException, CreationException, UpdateException, InvalidISBN {
         var bookModel = bookRepo.create(createBook());
         bookModel.getData().setName("FAKE");
         bookRepo.save(bookModel);
@@ -88,7 +89,7 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldDeleteEntity() throws InvalidStorageReferenceException, CreationException {
+    void shouldDeleteEntity() throws InvalidStorageReferenceException, CreationException, InvalidISBN {
         var bookModel = bookRepo.create(createBook());
         bookRepo.delete(bookModel);
         var foundBookModel = bookRepo.findById(bookModel.getId());
@@ -96,19 +97,19 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldFindEntityByQuery() throws InvalidQueryOperation, CreationException {
-        var queryNodeFactory = new QueryNodeFactory();
+    void shouldFindEntityByQuery() throws InvalidQueryOperation, CreationException, InvalidISBN {
+        var queryNodeFactory = new QueryFactory();
         var query = new Query(queryNodeFactory.buildOr(new QueryNode[]{
-            queryNodeFactory.buildClause(new Field("ISBN", "0001"), QueryOperation.Like),
+            queryNodeFactory.buildClause(new Field("ISBN", "9788249976515"), QueryOperation.Like),
             queryNodeFactory.buildClause(new Field("name", "fake01"), QueryOperation.Like),
         }));
 
         var ids = new Integer[]{
-            bookRepo.create(new Book("fake01", "0002", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake02", "0002", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake03", "0002", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake04", "0001", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake05", "0001", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake01", "9781160029544", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake02", "9781160029544", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake03", "9781160029544", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake04", "9788249976515", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake05", "9788249976515", "2012", "Misu")).getId(),
         };
 
         var result = bookRepo.find(query);
@@ -121,10 +122,10 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
-    void shouldLoadRelation() throws CreationException {
+    void shouldLoadRelation() throws CreationException, InvalidISBN, InvalidQueryOperation {
         var bookModel = bookRepo.create(new Book(
             "relation_test",
-            "123-123-123",
+            "9783161484100",
             "25 May",
             "Misu"
         ));
@@ -132,7 +133,7 @@ public class InMemoryPersistenceTest {
         assertNotNull(bookModel.getData().getAuthor());
         assertEquals("Misu", bookModel.getData().getAuthor().getName());
 
-        var queryNodeFactory = new QueryNodeFactory();
+        var queryNodeFactory = new QueryFactory();
         var query = new Query(
             queryNodeFactory.buildClause(
                 new Field("name", FieldType.String, "Misu"),

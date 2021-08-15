@@ -3,8 +3,6 @@ package services;
 import auth.Identity;
 import auth.InvalidLogin;
 import domain.User;
-import lombok.Getter;
-import lombok.Setter;
 
 public class SessionStatefulService {
     private Identity identity;

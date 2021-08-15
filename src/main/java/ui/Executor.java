@@ -4,13 +4,26 @@ import lombok.Data;
 import lombok.NonNull;
 import services.SessionStatefulService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 @Data
 public class Executor {
-    @NonNull Command[] commands;
+    @NonNull ArrayList<Command> commands;
     @NonNull ApplicationOutput appOutput;
     @NonNull SessionStatefulService sessionService;
+
+    public Executor(ApplicationOutput appOutput, SessionStatefulService sessionService) {
+        this.appOutput = appOutput;
+        this.sessionService = sessionService;
+        this.commands = new ArrayList<>();
+    }
+
+    public void registerModule(Module module) {
+        for (var command: module.getCommands()) {
+            commands.add(command);
+        }
+    }
 
     public void help(String path) throws CommandNotFoundException {
         var command = findCommand(path);

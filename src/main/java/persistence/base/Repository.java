@@ -24,7 +24,7 @@ public interface Repository<T> {
 
     void update(MappableModel<T> model, FieldsMap values) throws InvalidStorageReferenceException, UpdateException;
 
-    void loadRelations(MappableModel<T> model);
+    void loadRelations(MappableModel<T> model) throws InvalidQueryOperation;
 
     void addConstraint(Constraint constraint, Field field);
 

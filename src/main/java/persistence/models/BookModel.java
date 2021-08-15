@@ -64,7 +64,12 @@ public class BookModel implements MappableModel<Book> {
         var ISBN = map.getMap().get("ISBN").getValue();
         var publishedAt = map.getMap().get("publishedAt").getValue();
         var authorName = map.getMap().get("authorName").getValue();
-        this.data = new Book(name, ISBN, publishedAt, authorName);
+        try {
+            this.data = new Book(name, ISBN, publishedAt, authorName);
+        } catch (Exception ignored) {
+            this.data = null;
+        }
+
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -113,6 +118,15 @@ public class BookModel implements MappableModel<Book> {
                 "Book",
                 "authorName",
                 new Field("author", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "User",
+                "name",
+                new Field("rights", FieldType.Reference),
+                "Right",
+                "userName",
+                new Field("user", FieldType.Reference)
             ),
         };
     }

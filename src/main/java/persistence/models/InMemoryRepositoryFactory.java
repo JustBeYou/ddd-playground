@@ -1,14 +1,13 @@
 package persistence.models;
 
+import persistence.base.Repository;
 import persistence.base.RepositoryFactory;
 import persistence.drivers.inmemory.InMemoryRepository;
-import persistence.models.AuthorModelFactory;
-import persistence.models.BookModelFactory;
 
 public class InMemoryRepositoryFactory implements RepositoryFactory {
     @Override
     // TODO: type safety?
-    public InMemoryRepository build(String name) {
+    public Repository<?> build(String name) {
         return switch (name) {
             case "Book" -> new InMemoryRepository<>(new BookModelFactory(), this);
             case "Author" -> new InMemoryRepository<>(new AuthorModelFactory(), this);

@@ -15,7 +15,11 @@ public class AuthService {
   private final Repository<Right> rightRepository;
 
   public Identity login(String user, String password) throws InvalidLogin {
-    return new Identity(user, password, userRepository);
+    try {
+      return new Identity(user, password, userRepository);
+    } catch (Exception ex) {
+      throw new InvalidLogin();
+    }
   }
 
   public void register(String user, String password, String email) throws CreationException {

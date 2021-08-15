@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
 
 public class InMemoryRepository<T> implements Repository<T> {
     private final ModelFactory<T> modelFactory;
@@ -144,15 +145,14 @@ public class InMemoryRepository<T> implements Repository<T> {
 
         switch (foundField.getType()) {
             case String:
-                var isSameString = foundField.getValue().equals(clauseField.getValue());
-                switch (clauseOperation) {
-                    case Like:
-                    case IsSame:
-                        return isSameString;
-                    case NotLike:
-                        return !isSameString;
-                    default:
-                        break;
+                if (clauseOperation == QueryOperation.IsSame) {
+                    return foundField.getValue().equals(clauseField.getValue());
+                } else if (clauseOperation == QueryOperation.Like) {
+                    var pattern = Pattern.compile(clauseField.getValue());
+                    return pattern.matcher(foundField.getValue()).find();
+                } else if (clauseOperation == QueryOperation.NotLike) {
+                    var pattern = Pattern.compile(clauseField.getValue());
+                    return !pattern.matcher(foundField.getValue()).find();
                 }
                 break;
 
@@ -251,7 +251,7 @@ public class InMemoryRepository<T> implements Repository<T> {
     }
 
     @Override
-    public void loadRelations(MappableModel<T> model) {
+    public void loadRelations(MappableModel<T> model) throws InvalidQueryOperation {
         var relatedFields = model.getRelatedFields();
 
         for (var relatedField : relatedFields) {
@@ -315,7 +315,7 @@ public class InMemoryRepository<T> implements Repository<T> {
     }
 
     private Query buildSameQuery(String refField, String refValue) {
-        var queryNodeFactory = new QueryNodeFactory();
+        var queryNodeFactory = new QueryFactory();
         return new Query(
             queryNodeFactory.buildClause(
                 new Field(

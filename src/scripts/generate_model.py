@@ -34,6 +34,8 @@ models_config = read_config(current_path / "models.config")
 models_config["classes"] = []
 models_config["enums"] = []
 for domain_file in domain_all_path.iterdir():
+    if ".java" not in domain_file.name:
+        continue
     domain_class = domain_file.name.replace(".java", "")
     content = open(domain_file).read()
     is_enum = "public enum" in content
@@ -129,7 +131,11 @@ for field in fields:
 should_pass_copy = ""
 if model_name in models_config["with_copy"]:
     should_pass_copy = ", true"
-map_get += " "*8 + f"this.data = new {model_name}({', '.join(simple_field_names)}{should_pass_copy});"
+map_get += " "*8 + "try {\n"
+map_get += " "*12 + f"this.data = new {model_name}({', '.join(simple_field_names)}{should_pass_copy});\n"
+map_get += " "*8 + "} catch (Exception ignored) {\n"
+map_get += " "*12 + "this.data = null;\n"
+map_get += " "*8 + "}\n"
 
 load_relations = ""
 
