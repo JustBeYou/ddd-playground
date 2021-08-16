@@ -1,4 +1,5 @@
 import persistence.models.InMemoryRepositoryFactory;
+import services.CsvLoggerService;
 import ui.Application;
 import ui.ApplicationConsoleOutput;
 import ui.ApplicationKeyboardInput;
@@ -8,7 +9,8 @@ public class Books {
         var app = new Application(
             new ApplicationKeyboardInput(),
             new ApplicationConsoleOutput(),
-            new InMemoryRepositoryFactory()
+            new InMemoryRepositoryFactory(),
+            new CsvLoggerService("log.csv")
         );
         app.run();
     }

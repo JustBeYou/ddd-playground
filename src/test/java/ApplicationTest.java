@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import persistence.drivers.inmemory.InMemoryStore;
 import persistence.models.InMemoryRepositoryFactory;
+import services.FakeLoggerService;
 import ui.*;
 
 public class ApplicationTest {
@@ -17,7 +18,8 @@ public class ApplicationTest {
         var app = new Application(
             appInput,
             appOutput,
-            new InMemoryRepositoryFactory()
+            new InMemoryRepositoryFactory(),
+            new FakeLoggerService()
         );
         app.run();
         return appOutput.dump();

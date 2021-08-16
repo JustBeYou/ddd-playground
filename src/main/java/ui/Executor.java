@@ -2,6 +2,8 @@ package ui;
 
 import lombok.Data;
 import lombok.NonNull;
+import services.CsvLoggerService;
+import services.LoggerService;
 import services.SessionStatefulService;
 
 import java.util.ArrayList;
@@ -9,14 +11,20 @@ import java.util.Arrays;
 
 @Data
 public class Executor {
-    @NonNull ArrayList<Command> commands;
-    @NonNull ApplicationOutput appOutput;
-    @NonNull SessionStatefulService sessionService;
+    @NonNull private ArrayList<Command> commands;
+    @NonNull private ApplicationOutput appOutput;
+    @NonNull private SessionStatefulService sessionService;
+    @NonNull private LoggerService loggerService;
 
-    public Executor(ApplicationOutput appOutput, SessionStatefulService sessionService) {
+    public Executor(
+        ApplicationOutput appOutput,
+        SessionStatefulService sessionService,
+        LoggerService loggerService
+    ) {
         this.appOutput = appOutput;
         this.sessionService = sessionService;
         this.commands = new ArrayList<>();
+        this.loggerService = loggerService;
     }
 
     public void registerModule(Module module) {
@@ -51,7 +59,12 @@ public class Executor {
             return;
         }
 
-        var result = command.getAction().apply(Arrays.copyOfRange(pathAndArgs, 1, pathAndArgs.length));
+        var args = Arrays.copyOfRange(pathAndArgs, 1, pathAndArgs.length);
+
+        loggerService.log("User called action " + String.join("/", command.getPath()) +
+            " with arguments " + String.join(", ", args));
+
+        var result = command.getAction().apply(args);
         if (result == CommandStatus.FAIL) {
             appOutput.writeLine("Command failed.");
         } else if (result == CommandStatus.SUCCESS) {

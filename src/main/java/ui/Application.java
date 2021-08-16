@@ -5,8 +5,9 @@ import persistence.base.Repository;
 import persistence.base.RepositoryFactory;
 import persistence.base.constraints.Constraint;
 import persistence.base.serialization.Field;
-import persistence.models.InMemoryRepositoryFactory;
 import services.AuthService;
+import services.CsvLoggerService;
+import services.LoggerService;
 import services.SessionStatefulService;
 import ui.modules.AdminModule;
 import ui.modules.AuthModule;
@@ -21,7 +22,8 @@ public class Application {
     public Application(
         ApplicationInput appInput,
         ApplicationOutput appOutput,
-        RepositoryFactory repoFactory
+        RepositoryFactory repoFactory,
+        LoggerService loggerService
     ) {
         this.appInput = appInput;
         this.appOutput = appOutput;
@@ -46,7 +48,7 @@ public class Application {
         } catch (Exception ignored) {
         }
 
-        this.executor = new Executor(appOutput, sessionService);
+        this.executor = new Executor(appOutput, sessionService, loggerService);
         this.executor.registerModule(
             new AuthModule(appOutput, sessionService, authService)
         );
