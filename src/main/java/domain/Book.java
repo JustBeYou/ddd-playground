@@ -1,6 +1,9 @@
 package domain;
 
+import domain.exceptions.BookNotAvailable;
+import domain.exceptions.BookNotBorrowed;
 import domain.exceptions.InvalidISBN;
+import domain.exceptions.NotEnoughRights;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -12,10 +15,23 @@ public class Book {
     private String ISBN;
     @NonNull
     private String publishedAt;
+    @NonNull
+    private Boolean available;
+    @NonNull
+    private String borrowerName;
 
     @NonNull
     private String authorName;
     private Author author;
+
+    public Book(@NonNull String name, @NonNull String ISBN, @NonNull String publishedAt, @NonNull Boolean available, @NonNull String borrowerName, @NonNull String authorName) {
+        this.name = name;
+        this.ISBN = ISBN;
+        this.publishedAt = publishedAt;
+        this.available = available;
+        this.borrowerName = borrowerName;
+        this.authorName = authorName;
+    }
 
     public Book(@NonNull String name, @NonNull String ISBN, @NonNull String publishedAt, @NonNull String authorName) throws InvalidISBN {
         if (!isISBN13(ISBN)) {
@@ -26,6 +42,30 @@ public class Book {
         this.ISBN = ISBN;
         this.publishedAt = publishedAt;
         this.authorName = authorName;
+        this.available = true;
+        this.borrowerName = "";
+    }
+
+    public void borrowTo(User user) throws NotEnoughRights, BookNotAvailable {
+        if (!user.hasRight(RightType.BORROW_BOOKS)) {
+            throw new NotEnoughRights(RightType.BORROW_BOOKS);
+        }
+
+        if (!this.available) {
+            throw new BookNotAvailable(this.name);
+        }
+
+        this.available = false;
+        this.borrowerName = user.getName();
+    }
+
+    public void returnIt() throws BookNotBorrowed {
+        if (this.available) {
+            throw new BookNotBorrowed(this.name);
+        }
+
+        this.available = true;
+        this.borrowerName = "";
     }
 
     private boolean isISBN13(String number) {

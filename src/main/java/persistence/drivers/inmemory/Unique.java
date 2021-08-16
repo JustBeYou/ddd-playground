@@ -31,12 +31,13 @@ public class Unique<T> implements RuntimeConstraint<T> {
             )
         );
         var found = repository.find(query);
+
         return model.getId() == null && found.isEmpty() ||
             model.getId() != null && found.size() == 1;
     }
 
     @Override
     public String getFailingMessage() {
-        return "Field value is not unique";
+        return "Field value is not unique: " + this.field.getName();
     }
 }

@@ -55,7 +55,7 @@ public class InMemoryRepository<T> implements Repository<T> {
             }
 
             if (!good) {
-                throw new CreationException(message);
+                throw new CreationException(this.modelFactory.getModelName() + ": " + message);
             }
         }
 
@@ -121,7 +121,10 @@ public class InMemoryRepository<T> implements Repository<T> {
                 result = false;
                 op = (a, b) -> a ^ b;
             }
-            default -> throw new InvalidQueryOperation(node.getType());
+            default -> {
+                // This is unreachable
+                result = false;
+            }
         }
 
         for (var child : children) {

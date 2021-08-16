@@ -8,6 +8,7 @@ import persistence.base.serialization.Field;
 import persistence.models.InMemoryRepositoryFactory;
 import services.AuthService;
 import services.SessionStatefulService;
+import ui.modules.AdminModule;
 import ui.modules.AuthModule;
 import ui.modules.BooksModule;
 
@@ -37,10 +38,12 @@ public class Application {
             userRepo.addConstraint(Constraint.UNIQUE, new Field("email"));
 
             userRepo.create(new User("admin", "admin", "admin@email.com"));
+            authorRepo.create(new Author("default-author", Country.Romania));
+            bookRepo.create(new Book("default-book", "9784607084182", "13-May-1990", "default-author"));
             rightRepo.create(new Right(RightType.MANAGE_BOOKS, "admin"));
             rightRepo.create(new Right(RightType.MANAGE_USERS, "admin"));
+            rightRepo.create(new Right(RightType.BORROW_BOOKS, "admin"));
         } catch (Exception ignored) {
-
         }
 
         this.executor = new Executor(appOutput, sessionService);
@@ -48,7 +51,10 @@ public class Application {
             new AuthModule(appOutput, sessionService, authService)
         );
         this.executor.registerModule(
-            new BooksModule(appOutput, authorRepo, bookRepo)
+            new BooksModule(appOutput, sessionService, authorRepo, bookRepo)
+        );
+        this.executor.registerModule(
+            new AdminModule(appOutput, userRepo, rightRepo)
         );
     }
 

@@ -24,4 +24,8 @@ public class InMemoryStore {
         }
         return (Map<Integer, T>) database.get(name);
     }
+
+    public static void destroy() {
+        instance = null;
+    }
 }

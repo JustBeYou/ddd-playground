@@ -1,5 +1,6 @@
 package domain;
 
+import domain.exceptions.BookNotAvailable;
 import lombok.Data;
 import lombok.NonNull;
 

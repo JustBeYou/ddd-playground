@@ -1,5 +1,8 @@
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import persistence.drivers.inmemory.InMemoryStore;
 import persistence.models.InMemoryRepositoryFactory;
 import ui.*;
 
@@ -18,6 +21,11 @@ public class ApplicationTest {
         );
         app.run();
         return appOutput.dump();
+    }
+
+    @BeforeEach
+    void setupTest() {
+        InMemoryStore.destroy();
     }
 
     @Test
@@ -49,5 +57,47 @@ public class ApplicationTest {
         });
 
         assertTrue(output.contains("Found the following books:\nBook(name=test-book"));
+    }
+
+    @Test
+    void shouldListUsers() {
+        var output = runApp(new String[]{
+            "/login admin admin",
+            "/admin/users/list"
+        });
+
+        assertTrue(output.contains("User: admin Email: admin@email.com Rights: MANAGE_BOOKS MANAGE_USERS"));
+    }
+
+    @Test
+    void shouldAddNewRight() {
+        var output = runApp(new String[]{
+           "/register test test test@test.com",
+           "/login admin admin",
+            "/admin/users/add_right not_existent MANAGE_USERS",
+            "/admin/users/add_right test NOT_EXISTENT",
+            "/admin/users/add_right test MANAGE_USERS",
+            "/admin/users/add_right test MANAGE_USERS",
+            "/admin/users/list"
+        });
+
+        assertTrue(output.contains("User not found."));
+        assertTrue(output.contains("Unknown right type."));
+        assertTrue(output.contains("User already has this right."));
+        assertTrue(output.contains("User: test Email: test@test.com Rights: BORROW_BOOKS MANAGE_USERS"));
+    }
+
+    @Test
+    void shouldBorrowAndReturnBook() {
+        var output = runApp(new String[]{
+            "/login admin admin",
+            "/books/borrow default-book",
+            "/books/return default-book",
+            "/books/borrow default-book"
+        });
+
+        assertTrue(output.contains("You borrowed default-book"));
+        assertTrue(output.contains("You returned default-book"));
+        assertFalse(output.contains("The book is not available for borrowing"));
     }
 }

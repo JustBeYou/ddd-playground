@@ -52,6 +52,8 @@ public class BookModel implements MappableModel<Book> {
         map.put("name", new Field("name", FieldType.String, this.data.getName().toString()));
         map.put("ISBN", new Field("ISBN", FieldType.String, this.data.getISBN().toString()));
         map.put("publishedAt", new Field("publishedAt", FieldType.String, this.data.getPublishedAt().toString()));
+        map.put("available", new Field("available", FieldType.Boolean, this.data.getAvailable().toString()));
+        map.put("borrowerName", new Field("borrowerName", FieldType.String, this.data.getBorrowerName().toString()));
         map.put("authorName", new Field("authorName", FieldType.String, this.data.getAuthorName().toString()));
 
         return new FieldsMap(map, "Book");
@@ -63,9 +65,11 @@ public class BookModel implements MappableModel<Book> {
         var name = map.getMap().get("name").getValue();
         var ISBN = map.getMap().get("ISBN").getValue();
         var publishedAt = map.getMap().get("publishedAt").getValue();
+        var available = Boolean.valueOf(map.getMap().get("available").getValue());
+        var borrowerName = map.getMap().get("borrowerName").getValue();
         var authorName = map.getMap().get("authorName").getValue();
         try {
-            this.data = new Book(name, ISBN, publishedAt, authorName);
+            this.data = new Book(name, ISBN, publishedAt, available, borrowerName, authorName);
         } catch (Exception ignored) {
             this.data = null;
         }
@@ -83,6 +87,8 @@ public class BookModel implements MappableModel<Book> {
         if (!map.getMap().containsKey("name")) { map.getMap().put("name", new Field("name", FieldType.String, exitingData.getName().toString())); }
         if (!map.getMap().containsKey("ISBN")) { map.getMap().put("ISBN", new Field("ISBN", FieldType.String, exitingData.getISBN().toString())); }
         if (!map.getMap().containsKey("publishedAt")) { map.getMap().put("publishedAt", new Field("publishedAt", FieldType.String, exitingData.getPublishedAt().toString())); }
+        if (!map.getMap().containsKey("available")) { map.getMap().put("available", new Field("available", FieldType.Boolean, exitingData.getAvailable().toString())); }
+        if (!map.getMap().containsKey("borrowerName")) { map.getMap().put("borrowerName", new Field("borrowerName", FieldType.String, exitingData.getBorrowerName().toString())); }
         if (!map.getMap().containsKey("authorName")) { map.getMap().put("authorName", new Field("authorName", FieldType.String, exitingData.getAuthorName().toString())); }
 
         return this.unmap(map);
@@ -95,6 +101,8 @@ public class BookModel implements MappableModel<Book> {
         fields.add(new Field("name", FieldType.String));
         fields.add(new Field("ISBN", FieldType.String));
         fields.add(new Field("publishedAt", FieldType.String));
+        fields.add(new Field("available", FieldType.Boolean));
+        fields.add(new Field("borrowerName", FieldType.String));
         fields.add(new Field("authorName", FieldType.String));
         fields.add(new Field("author", FieldType.Reference));
 
