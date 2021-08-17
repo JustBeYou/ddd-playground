@@ -192,7 +192,7 @@ for relation in models_config['relations']:
     field_from, field_to = fields.split('->')
 
     if model_name not in [entity_from, entity_to]:
-        pass
+        continue
 
     related_fields += f"""
             new RelatedField(
