@@ -1,22 +1,19 @@
 package services.csv;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class CsvWriter {
-    private final String filename;
+    private BufferedWriter writer;
 
-    public CsvWriter(String filename) {
-        this.filename = filename;
+    public CsvWriter(BufferedWriter writer) {
+        this.writer = writer;
     }
 
-    public void write(CsvData data) throws IOException {
-        var writer = new BufferedWriter(new FileWriter(filename));
-        writer.write(String.join(",", data.getHeader()) + "\n");
-        for (var row: data.getRows()) {
-            writer.write(String.join(",", row) + "\n");
-        }
-        writer.close();
+    public void writeRow(Collection<String> row) throws IOException {
+        this.writer.write(String.join(",", row) + "\n");
+        this.writer.flush();
     }
 }

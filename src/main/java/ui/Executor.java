@@ -61,15 +61,16 @@ public class Executor {
 
         var args = Arrays.copyOfRange(pathAndArgs, 1, pathAndArgs.length);
 
-        loggerService.log("User called action " + String.join("/", command.getPath()) +
-            " with arguments " + String.join(", ", args));
-
         var result = command.getAction().apply(args);
         if (result == CommandStatus.FAIL) {
             appOutput.writeLine("Command failed.");
         } else if (result == CommandStatus.SUCCESS) {
             appOutput.writeLine("Command successfully executed.");
         }
+
+        loggerService.log("User called action " + String.join("/", command.getPath()) +
+            " with arguments (" + String.join(" ", args) +
+            ") and returned status " + result.toString() + ".");
     }
 
     private Command findCommand(String path) throws CommandNotFoundException {

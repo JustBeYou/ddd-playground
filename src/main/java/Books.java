@@ -4,8 +4,10 @@ import ui.Application;
 import ui.ApplicationConsoleOutput;
 import ui.ApplicationKeyboardInput;
 
+import java.io.IOException;
+
 public class Books {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         var app = new Application(
             new ApplicationKeyboardInput(),
             new ApplicationConsoleOutput(),
