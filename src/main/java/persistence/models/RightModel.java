@@ -59,7 +59,12 @@ public class RightModel implements MappableModel<Right> {
         assert map.getName().equals("Right");
         var type = RightType.valueOf(map.getMap().get("type").getValue());
         var userName = map.getMap().get("userName").getValue();
-        this.data = new Right(type, userName);
+        try {
+            this.data = new Right(type, userName);
+        } catch (Exception ignored) {
+            this.data = null;
+        }
+
         var id = map.getMap().get("id");
         if (id != null) {
             this.id = Integer.valueOf(id.getValue());
@@ -94,15 +99,6 @@ public class RightModel implements MappableModel<Right> {
     @Override
     public RelatedField[] getRelatedFields() {
         return new RelatedField[]{
-            new RelatedField(
-                RelationType.ONE_OWNS_MANY,
-                "Author",
-                "name",
-                new Field("books", FieldType.Reference),
-                "Book",
-                "authorName",
-                new Field("author", FieldType.Reference)
-            ),
             new RelatedField(
                 RelationType.ONE_OWNS_MANY,
                 "User",

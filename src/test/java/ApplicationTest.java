@@ -54,7 +54,7 @@ public class ApplicationTest {
         var output = runApp(new String[]{
             "/login admin admin",
             "/authors/add test-author Romania",
-            "/books/add test-book 9784607084182 13-May-1990 test-author",
+            "/books/add test-book 9784607084182 13-May-1990 test-author default-shelve",
             "/books/search test-book"
         });
 
@@ -101,5 +101,32 @@ public class ApplicationTest {
         assertTrue(output.contains("You borrowed default-book"));
         assertTrue(output.contains("You returned default-book"));
         assertFalse(output.contains("The book is not available for borrowing"));
+    }
+
+    @Test
+    void shouldCreateShelve() {
+        var output = runApp(new String[] {
+           "/login admin admin",
+            "/books/shelve/add romance",
+            "/books/shelve/list_books romance",
+        });
+
+        assertTrue(output.contains("Created new shelve romance"));
+        assertTrue(output.contains("The shelve is empty"));
+    }
+
+    @Test
+    void shouldMoveBookToShelve() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/shelve/add romance",
+            "/books/shelve/add sf",
+            "/authors/add test-author Romania",
+            "/books/add test-book 9784607084182 13-May-1990 test-author romance",
+            "/books/shelve/move_book sf test-book",
+            "/books/shelve/list_books sf"
+        });
+
+        assertTrue(output.contains("Books in sf:\nBook(name=test-book"));
     }
 }

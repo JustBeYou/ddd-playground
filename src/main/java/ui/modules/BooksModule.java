@@ -1,9 +1,6 @@
 package ui.modules;
 
-import domain.Author;
-import domain.Book;
-import domain.Country;
-import domain.RightType;
+import domain.*;
 import domain.exceptions.BookNotAvailable;
 import domain.exceptions.BookNotBorrowed;
 import domain.exceptions.NotEnoughRights;
@@ -11,6 +8,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import persistence.base.Repository;
 import persistence.base.exceptions.CreationException;
+import persistence.base.exceptions.InvalidQueryOperation;
 import persistence.base.exceptions.InvalidStorageReferenceException;
 import persistence.base.exceptions.UpdateException;
 import persistence.base.queries.Query;
@@ -34,18 +32,20 @@ public class BooksModule implements Module {
         ApplicationOutput appOutput,
         SessionStatefulService sessionService,
         Repository<Author> authorRepository,
-        Repository<Book> bookRepository
+        Repository<Book> bookRepository,
+        Repository<Shelve> shelveRepository
     ) {
         commands = new ArrayList<>();
 
         commands.add(new Command("/books/add",
-            "<name> <ISBN> <publishedAt> <authorName>",
+            "<name> <ISBN> <publishedAt> <authorName> <shelve>",
             "Adds a new book to the library.",
             (String[] args) -> {
                 var name = args[0];
                 var isbn = args[1];
                 var publishedAt = args[2];
                 var authorName = args[3];
+                var shelve = args[4];
 
                 var query = new QueryFactory().buildSimpleQuery("name", authorName, QueryOperation.Like);
                 if (!authorRepository.exists(query)) {
@@ -54,7 +54,7 @@ public class BooksModule implements Module {
                 }
 
                 try {
-                    bookRepository.create(new Book(name, isbn, publishedAt, authorName));
+                    bookRepository.create(new Book(name, isbn, publishedAt, authorName, shelve));
                 } catch (Exception ex) {
                     appOutput.writeLine("Could not add new book: " + ex.getMessage());
                     return CommandStatus.FAIL;
@@ -181,6 +181,115 @@ public class BooksModule implements Module {
                 appOutput.writeLine("You returned " + bookName);
                 return CommandStatus.SUCCESS;
             }, new RightType[]{RightType.BORROW_BOOKS}
+        ));
+
+        commands.add(new Command(
+            "/books/shelve/add", "<name>",
+            "Creates a new shelve.",
+            args -> {
+                var name = args[0];
+
+                try {
+                    shelveRepository.create(new Shelve(name));
+                } catch (CreationException e) {
+                    appOutput.writeLine("Couldn't create shelve: " + e.getMessage());
+                    return CommandStatus.FAIL;
+                }
+                appOutput.writeLine("Created new shelve " + name);
+
+                return CommandStatus.SUCCESS;
+            }, new RightType[]{RightType.MANAGE_BOOKS}
+        ));
+
+        commands.add(new Command(
+            "/books/shelve/list_books", "<shelve>",
+            "Lists all books from a shelve.",
+            args -> {
+                var name = args[0];
+                var query = new QueryFactory().buildSimpleQuery(
+                  "name", name, QueryOperation.IsSame
+                );
+                var foundShelve = shelveRepository.findOne(query);
+                if (foundShelve.isEmpty()) {
+                    appOutput.writeLine("Shelve not found.");
+                    return CommandStatus.FAIL;
+                }
+
+                var shelve = foundShelve.get();
+                try {
+                    shelveRepository.loadRelations(shelve);
+                } catch (InvalidQueryOperation ignored) {
+
+                }
+
+                if (shelve.getData().getBooks().isEmpty()) {
+                    appOutput.writeLine("The shelve is empty.");
+                } else {
+                    appOutput.writeLine("Books in " + name + ":");
+                    for (var book: shelve.getData().getBooks()) {
+                        appOutput.writeLine(book.toString());
+                    }
+                }
+
+                return CommandStatus.SUCCESS;
+            }, new RightType[]{}
+        ));
+
+        commands.add(new Command(
+            "/books/shelve/move_book", "<shelve> <book>",
+            "Moves a book to a shelve.",
+            args -> {
+                var shelveName = args[0];
+                var bookName = args[1];
+
+                var query = new QueryFactory().buildSimpleQuery(
+                    "name", shelveName, QueryOperation.IsSame
+                );
+                var foundShelve = shelveRepository.findOne(query);
+                if (foundShelve.isEmpty()) {
+                    appOutput.writeLine("Shelve not found.");
+                    return CommandStatus.FAIL;
+                }
+
+                query = new QueryFactory().buildSimpleQuery(
+                    "name", bookName, QueryOperation.IsSame
+                );
+                var foundBook = bookRepository.findOne(query);
+                if (foundBook.isEmpty()) {
+                    appOutput.writeLine("Book not found.");
+                    return CommandStatus.FAIL;
+                }
+
+                var shelve = foundShelve.get();
+                var book = foundBook.get();
+
+                book.getData().setShelveName(shelve.getData().getName());
+                try {
+                    bookRepository.save(book);
+                } catch (Exception ex) {
+                    appOutput.writeLine("Could not move the book: " + ex.getMessage());
+                    return CommandStatus.FAIL;
+                }
+
+                return CommandStatus.SUCCESS;
+            }, new RightType[]{RightType.MANAGE_BOOKS}
+        ));
+
+        commands.add(new Command(
+            "/books/shelve/list", "",
+            "Lists shelves.",
+            args -> {
+                try {
+                    var shelves = shelveRepository.find(new Query());
+                    for (var shelve: shelves) {
+                        appOutput.writeLine(shelve.getData().toString());
+                    }
+                } catch (InvalidQueryOperation ignored) {
+                    return CommandStatus.FAIL;
+                }
+
+                return CommandStatus.SUCCESS;
+            }, new RightType[]{}
         ));
     }
 }

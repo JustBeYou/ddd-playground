@@ -32,16 +32,21 @@ public class Application {
         Repository<Right> rightRepo = (Repository<Right>) repoFactory.build("Right");
         Repository<Author> authorRepo = (Repository<Author>) repoFactory.build("Author");
         Repository<Book> bookRepo = (Repository<Book>) repoFactory.build("Book");
+        Repository<Shelve> shelveRepo = (Repository<Shelve>) repoFactory.build("Shelve");
         var authService = new AuthService(userRepo, rightRepo);
         sessionService = new SessionStatefulService(authService);
 
         try {
             userRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
             userRepo.addConstraint(Constraint.UNIQUE, new Field("email"));
+            bookRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
+            authorRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
+            shelveRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
 
             userRepo.create(new User("admin", "admin", "admin@email.com"));
+            shelveRepo.create(new Shelve("default-shelve"));
             authorRepo.create(new Author("default-author", Country.Romania));
-            bookRepo.create(new Book("default-book", "9784607084182", "13-May-1990", "default-author"));
+            bookRepo.create(new Book("default-book", "9784607084182", "13-May-1990", "default-author", "default-shelve"));
             rightRepo.create(new Right(RightType.MANAGE_BOOKS, "admin"));
             rightRepo.create(new Right(RightType.MANAGE_USERS, "admin"));
             rightRepo.create(new Right(RightType.BORROW_BOOKS, "admin"));
@@ -53,7 +58,7 @@ public class Application {
             new AuthModule(appOutput, sessionService, authService)
         );
         this.executor.registerModule(
-            new BooksModule(appOutput, sessionService, authorRepo, bookRepo)
+            new BooksModule(appOutput, sessionService, authorRepo, bookRepo, shelveRepo)
         );
         this.executor.registerModule(
             new AdminModule(appOutput, userRepo, rightRepo)

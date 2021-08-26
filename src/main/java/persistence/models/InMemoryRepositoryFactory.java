@@ -13,6 +13,7 @@ public class InMemoryRepositoryFactory implements RepositoryFactory {
             case "Author" -> new InMemoryRepository<>(new AuthorModelFactory(), this);
             case "User" -> new InMemoryRepository<>(new UserModelFactory(), this);
             case "Right" -> new InMemoryRepository<>(new RightModelFactory(), this);
+            case "Shelve" -> new InMemoryRepository<>(new ShelveModelFactory(), this);
             default -> null;
         };
     }

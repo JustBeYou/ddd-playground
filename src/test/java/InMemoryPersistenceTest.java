@@ -1,6 +1,7 @@
 import domain.Author;
 import domain.Book;
 import domain.Country;
+import domain.Shelve;
 import domain.exceptions.InvalidISBN;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,11 +18,8 @@ import persistence.base.queries.QueryFactory;
 import persistence.base.queries.QueryOperation;
 import persistence.base.serialization.Field;
 import persistence.base.serialization.FieldType;
-import persistence.models.InMemoryRepositoryFactory;
+import persistence.models.*;
 import persistence.drivers.inmemory.InMemoryRepository;
-import persistence.models.AuthorModelFactory;
-import persistence.models.BookModel;
-import persistence.models.BookModelFactory;
 
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -31,18 +29,23 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InMemoryPersistenceTest {
     static Repository<Book> bookRepo;
     static Repository<Author> authorRepo;
+    static Repository<Shelve> shelveRepo;
     static int cnt = 0;
 
     @BeforeAll
     static void setup() throws CreationException {
         authorRepo = new InMemoryRepository<>(new AuthorModelFactory(), new InMemoryRepositoryFactory());
         bookRepo = new InMemoryRepository<>(new BookModelFactory(), new InMemoryRepositoryFactory());
+        shelveRepo = new InMemoryRepository<>(new ShelveModelFactory(), new InMemoryRepositoryFactory());
+
 
         authorRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
         bookRepo.addConstraint(Constraint.UNIQUE, new Field("name"));
 
         var author = new Author("Misu", Country.Romania);
         authorRepo.create(author);
+
+        shelveRepo.create(new Shelve("default-shelve"));
     }
 
     private Book createBook() throws InvalidISBN {
@@ -50,7 +53,8 @@ public class InMemoryPersistenceTest {
             "test" + cnt++,
             "9783161484100",
             "3 May 2015",
-            "Misu"
+            "Misu",
+            "default-shelve"
         );
     }
 
@@ -105,11 +109,11 @@ public class InMemoryPersistenceTest {
         }));
 
         var ids = new Integer[]{
-            bookRepo.create(new Book("fake01", "9781160029544", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake02", "9781160029544", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake03", "9781160029544", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake04", "9788249976515", "2012", "Misu")).getId(),
-            bookRepo.create(new Book("fake05", "9788249976515", "2012", "Misu")).getId(),
+            bookRepo.create(new Book("fake01", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
+            bookRepo.create(new Book("fake02", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
+            bookRepo.create(new Book("fake03", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
+            bookRepo.create(new Book("fake04", "9788249976515", "2012", "Misu", "default-shelve")).getId(),
+            bookRepo.create(new Book("fake05", "9788249976515", "2012", "Misu", "default-shelve")).getId(),
         };
 
         var result = bookRepo.find(query);
@@ -127,7 +131,8 @@ public class InMemoryPersistenceTest {
             "relation_test",
             "9783161484100",
             "25 May",
-            "Misu"
+            "Misu",
+            "default-shelve"
         ));
         bookRepo.loadRelations(bookModel);
         assertNotNull(bookModel.getData().getAuthor());

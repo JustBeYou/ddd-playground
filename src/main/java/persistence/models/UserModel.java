@@ -115,15 +115,6 @@ public class UserModel implements MappableModel<User> {
         return new RelatedField[]{
             new RelatedField(
                 RelationType.ONE_OWNS_MANY,
-                "Author",
-                "name",
-                new Field("books", FieldType.Reference),
-                "Book",
-                "authorName",
-                new Field("author", FieldType.Reference)
-            ),
-            new RelatedField(
-                RelationType.ONE_OWNS_MANY,
                 "User",
                 "name",
                 new Field("rights", FieldType.Reference),

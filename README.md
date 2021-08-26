@@ -21,7 +21,7 @@ At least 8 entities in the domain:
 At least 10 operations/actions within the application:
 - Login & registration X
 - Add new books to the library X
-- Manage book physical and virtual shelves
+- Manage bookshelves X
 - Manage users and their rights X
 - Borrow books X
 - Add comments to reviews

@@ -11,6 +11,8 @@ package persistence.models;
 import domain.Book;
 import domain.Author;
 import persistence.models.AuthorModel;
+import domain.Shelve;
+import persistence.models.ShelveModel;
 
 
 import lombok.Data;
@@ -55,6 +57,7 @@ public class BookModel implements MappableModel<Book> {
         map.put("available", new Field("available", FieldType.Boolean, this.data.getAvailable().toString()));
         map.put("borrowerName", new Field("borrowerName", FieldType.String, this.data.getBorrowerName().toString()));
         map.put("authorName", new Field("authorName", FieldType.String, this.data.getAuthorName().toString()));
+        map.put("shelveName", new Field("shelveName", FieldType.String, this.data.getShelveName().toString()));
 
         return new FieldsMap(map, "Book");
     }
@@ -68,8 +71,9 @@ public class BookModel implements MappableModel<Book> {
         var available = Boolean.valueOf(map.getMap().get("available").getValue());
         var borrowerName = map.getMap().get("borrowerName").getValue();
         var authorName = map.getMap().get("authorName").getValue();
+        var shelveName = map.getMap().get("shelveName").getValue();
         try {
-            this.data = new Book(name, ISBN, publishedAt, available, borrowerName, authorName);
+            this.data = new Book(name, ISBN, publishedAt, available, borrowerName, authorName, shelveName);
         } catch (Exception ignored) {
             this.data = null;
         }
@@ -90,6 +94,7 @@ public class BookModel implements MappableModel<Book> {
         if (!map.getMap().containsKey("available")) { map.getMap().put("available", new Field("available", FieldType.Boolean, exitingData.getAvailable().toString())); }
         if (!map.getMap().containsKey("borrowerName")) { map.getMap().put("borrowerName", new Field("borrowerName", FieldType.String, exitingData.getBorrowerName().toString())); }
         if (!map.getMap().containsKey("authorName")) { map.getMap().put("authorName", new Field("authorName", FieldType.String, exitingData.getAuthorName().toString())); }
+        if (!map.getMap().containsKey("shelveName")) { map.getMap().put("shelveName", new Field("shelveName", FieldType.String, exitingData.getShelveName().toString())); }
 
         return this.unmap(map);
     }
@@ -105,6 +110,8 @@ public class BookModel implements MappableModel<Book> {
         fields.add(new Field("borrowerName", FieldType.String));
         fields.add(new Field("authorName", FieldType.String));
         fields.add(new Field("author", FieldType.Reference));
+        fields.add(new Field("shelveName", FieldType.String));
+        fields.add(new Field("shelve", FieldType.Reference));
 
         return fields;
     }
@@ -112,6 +119,7 @@ public class BookModel implements MappableModel<Book> {
     @Override
     public void loadRelationField(String field, Object object) {
         if ("author".equals(field)){         this.getData().setAuthor((Author) object); }
+        if ("shelve".equals(field)){         this.getData().setShelve((Shelve) object); }
 
     }
 
@@ -129,12 +137,12 @@ public class BookModel implements MappableModel<Book> {
             ),
             new RelatedField(
                 RelationType.ONE_OWNS_MANY,
-                "User",
+                "Shelve",
                 "name",
-                new Field("rights", FieldType.Reference),
-                "Right",
-                "userName",
-                new Field("user", FieldType.Reference)
+                new Field("books", FieldType.Reference),
+                "Book",
+                "shelveName",
+                new Field("shelve", FieldType.Reference)
             ),
         };
     }

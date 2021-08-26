@@ -8,8 +8,7 @@ package persistence.models;
   DO NOT MODIFY!
  */
 
-import domain.Author;
-import domain.Country;
+import domain.Shelve;
 import domain.Book;
 import persistence.models.BookModel;
 
@@ -29,18 +28,18 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Data
-public class AuthorModel implements MappableModel<Author> {
-    private final String name = "Author";
+public class ShelveModel implements MappableModel<Shelve> {
+    private final String name = "Shelve";
 
     private Integer id;
     @NonNull
-    private Author data;
+    private Shelve data;
 
-    public AuthorModel(Author data) {
+    public ShelveModel(Shelve data) {
         this.data = data;
     }
 
-    public void setData(@NonNull Author data) {
+    public void setData(@NonNull Shelve data) {
         this.data = data;
     }
 
@@ -51,18 +50,16 @@ public class AuthorModel implements MappableModel<Author> {
             map.put("id", new Field("id", FieldType.Integer, this.id.toString()));
         }
         map.put("name", new Field("name", FieldType.String, this.data.getName().toString()));
-        map.put("country", new Field("country", FieldType.String, this.data.getCountry().toString()));
 
-        return new FieldsMap(map, "Author");
+        return new FieldsMap(map, "Shelve");
     }
 
     @Override
-    public Author unmap(FieldsMap map) {
-        assert map.getName().equals("Author");
+    public Shelve unmap(FieldsMap map) {
+        assert map.getName().equals("Shelve");
         var name = map.getMap().get("name").getValue();
-        var country = Country.valueOf(map.getMap().get("country").getValue());
         try {
-            this.data = new Author(name, country);
+            this.data = new Shelve(name);
         } catch (Exception ignored) {
             this.data = null;
         }
@@ -75,10 +72,9 @@ public class AuthorModel implements MappableModel<Author> {
     }
 
     @Override
-    public Author unmapIfSet(Author exitingData, FieldsMap map) {
-        assert map.getName().equals("Author");
+    public Shelve unmapIfSet(Shelve exitingData, FieldsMap map) {
+        assert map.getName().equals("Shelve");
         if (!map.getMap().containsKey("name")) { map.getMap().put("name", new Field("name", FieldType.String, exitingData.getName().toString())); }
-        if (!map.getMap().containsKey("country")) { map.getMap().put("country", new Field("country", FieldType.String, exitingData.getCountry().toString())); }
 
         return this.unmap(map);
     }
@@ -88,7 +84,6 @@ public class AuthorModel implements MappableModel<Author> {
         var fields = new ArrayList<Field>();
         fields.add(new Field("id", FieldType.Integer));
         fields.add(new Field("name", FieldType.String));
-        fields.add(new Field("country", FieldType.String));
         fields.add(new Field("books", FieldType.Reference));
 
         return fields;
@@ -112,12 +107,12 @@ public class AuthorModel implements MappableModel<Author> {
         return new RelatedField[]{
             new RelatedField(
                 RelationType.ONE_OWNS_MANY,
-                "Author",
+                "Shelve",
                 "name",
                 new Field("books", FieldType.Reference),
                 "Book",
-                "authorName",
-                new Field("author", FieldType.Reference)
+                "shelveName",
+                new Field("shelve", FieldType.Reference)
             ),
         };
     }
