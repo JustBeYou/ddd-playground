@@ -58,6 +58,7 @@ public class BookModel implements MappableModel<Book> {
         map.put("borrowerName", new Field("borrowerName", FieldType.String, this.data.getBorrowerName().toString()));
         map.put("authorName", new Field("authorName", FieldType.String, this.data.getAuthorName().toString()));
         map.put("shelveName", new Field("shelveName", FieldType.String, this.data.getShelveName().toString()));
+        map.put("pages", new Field("pages", FieldType.Integer, this.data.getPages().toString()));
 
         return new FieldsMap(map, "Book");
     }
@@ -72,8 +73,9 @@ public class BookModel implements MappableModel<Book> {
         var borrowerName = map.getMap().get("borrowerName").getValue();
         var authorName = map.getMap().get("authorName").getValue();
         var shelveName = map.getMap().get("shelveName").getValue();
+        var pages = Integer.valueOf(map.getMap().get("pages").getValue());
         try {
-            this.data = new Book(name, ISBN, publishedAt, available, borrowerName, authorName, shelveName);
+            this.data = new Book(name, ISBN, publishedAt, available, borrowerName, authorName, shelveName, pages);
         } catch (Exception ignored) {
             this.data = null;
         }
@@ -95,6 +97,7 @@ public class BookModel implements MappableModel<Book> {
         if (!map.getMap().containsKey("borrowerName")) { map.getMap().put("borrowerName", new Field("borrowerName", FieldType.String, exitingData.getBorrowerName().toString())); }
         if (!map.getMap().containsKey("authorName")) { map.getMap().put("authorName", new Field("authorName", FieldType.String, exitingData.getAuthorName().toString())); }
         if (!map.getMap().containsKey("shelveName")) { map.getMap().put("shelveName", new Field("shelveName", FieldType.String, exitingData.getShelveName().toString())); }
+        if (!map.getMap().containsKey("pages")) { map.getMap().put("pages", new Field("pages", FieldType.Integer, exitingData.getPages().toString())); }
 
         return this.unmap(map);
     }
@@ -112,6 +115,7 @@ public class BookModel implements MappableModel<Book> {
         fields.add(new Field("author", FieldType.Reference));
         fields.add(new Field("shelveName", FieldType.String));
         fields.add(new Field("shelve", FieldType.Reference));
+        fields.add(new Field("pages", FieldType.Integer));
 
         return fields;
     }
@@ -143,6 +147,15 @@ public class BookModel implements MappableModel<Book> {
                 "Book",
                 "shelveName",
                 new Field("shelve", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "Book",
+                "name",
+                new Field("trackers", FieldType.Reference),
+                "ReadingTracker",
+                "bookName",
+                new Field("book", FieldType.Reference)
             ),
         };
     }

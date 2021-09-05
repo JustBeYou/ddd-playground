@@ -28,9 +28,12 @@ public class Book {
     private String shelveName;
     private Shelve shelve;
 
+    @NonNull
+    private Integer pages;
+
     public Book(@NonNull String name, @NonNull String ISBN, @NonNull String publishedAt,
                 @NonNull Boolean available, @NonNull String borrowerName, @NonNull String authorName,
-                @NonNull String shelveName) {
+                @NonNull String shelveName, @NonNull Integer pages) {
         this.name = name;
         this.ISBN = ISBN;
         this.publishedAt = publishedAt;
@@ -38,11 +41,12 @@ public class Book {
         this.borrowerName = borrowerName;
         this.authorName = authorName;
         this.shelveName = shelveName;
+        this.pages = pages;
     }
 
     public Book(@NonNull String name, @NonNull String ISBN,
                 @NonNull String publishedAt, @NonNull String authorName,
-                @NonNull String shelveName) throws InvalidISBN {
+                @NonNull String shelveName, @NonNull Integer pages) throws InvalidISBN {
         if (!isISBN13(ISBN)) {
             throw new InvalidISBN(ISBN);
         }
@@ -54,6 +58,7 @@ public class Book {
         this.available = true;
         this.borrowerName = "";
         this.shelveName = shelveName;
+        this.pages = pages;
     }
 
     public void borrowTo(User user) throws NotEnoughRights, BookNotAvailable {

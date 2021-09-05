@@ -54,7 +54,8 @@ public class InMemoryPersistenceTest {
             "9783161484100",
             "3 May 2015",
             "Misu",
-            "default-shelve"
+            "default-shelve",
+            100
         );
     }
 
@@ -109,11 +110,11 @@ public class InMemoryPersistenceTest {
         }));
 
         var ids = new Integer[]{
-            bookRepo.create(new Book("fake01", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
-            bookRepo.create(new Book("fake02", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
-            bookRepo.create(new Book("fake03", "9781160029544", "2012", "Misu", "default-shelve")).getId(),
-            bookRepo.create(new Book("fake04", "9788249976515", "2012", "Misu", "default-shelve")).getId(),
-            bookRepo.create(new Book("fake05", "9788249976515", "2012", "Misu", "default-shelve")).getId(),
+            bookRepo.create(new Book("fake01", "9781160029544", "2012", "Misu", "default-shelve", 100)).getId(),
+            bookRepo.create(new Book("fake02", "9781160029544", "2012", "Misu", "default-shelve", 100)).getId(),
+            bookRepo.create(new Book("fake03", "9781160029544", "2012", "Misu", "default-shelve", 100)).getId(),
+            bookRepo.create(new Book("fake04", "9788249976515", "2012", "Misu", "default-shelve", 100)).getId(),
+            bookRepo.create(new Book("fake05", "9788249976515", "2012", "Misu", "default-shelve", 100)).getId(),
         };
 
         var result = bookRepo.find(query);
@@ -132,7 +133,8 @@ public class InMemoryPersistenceTest {
             "9783161484100",
             "25 May",
             "Misu",
-            "default-shelve"
+            "default-shelve",
+            100
         ));
         bookRepo.loadRelations(bookModel);
         assertNotNull(bookModel.getData().getAuthor());

@@ -19,16 +19,16 @@ At least 8 entities in the domain:
 - Right
 
 At least 10 operations/actions within the application:
-- Login & registration X
-- Add new books to the library X
-- Manage bookshelves X
-- Manage users and their rights X
-- Borrow books X
+- Login & registration 
+- Add new books to the library 
+- Manage bookshelves 
+- Manage users and their rights 
+- Borrow books 
 - Add comments to reviews
 - Publish reviews about books
 - Track your reading progress
-- Search books database X
-- Return books X
+- Search books database 
+- Return books 
 
 ## Code structure & architecture
 

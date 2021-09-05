@@ -1,6 +1,5 @@
 package domain;
 
-import domain.exceptions.BookNotAvailable;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -16,6 +15,7 @@ public class User {
     @NonNull private String passwordHash;
     @NonNull private String email;
     @NonNull private Collection<Right> rights;
+    @NonNull private Collection<ReadingTracker> trackers;
 
     public User(@NonNull String name, @NonNull String password, @NonNull String email) {
         this(name, password, email, false);
@@ -27,11 +27,13 @@ public class User {
             this.passwordHash = password;
             this.email = email;
             this.rights = new ArrayList<>();
+            this.trackers = new ArrayList<>();
         } else {
             this.name = name;
             this.passwordHash = this.hash(password);
             this.email = email;
             this.rights = new ArrayList<>();
+            this.trackers = new ArrayList<>();
         }
     }
 

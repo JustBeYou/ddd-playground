@@ -6,7 +6,6 @@ import persistence.base.RepositoryFactory;
 import persistence.base.constraints.Constraint;
 import persistence.base.serialization.Field;
 import services.AuthService;
-import services.CsvLoggerService;
 import services.LoggerService;
 import services.SessionStatefulService;
 import ui.modules.AdminModule;
@@ -33,6 +32,7 @@ public class Application {
         Repository<Author> authorRepo = (Repository<Author>) repoFactory.build("Author");
         Repository<Book> bookRepo = (Repository<Book>) repoFactory.build("Book");
         Repository<Shelve> shelveRepo = (Repository<Shelve>) repoFactory.build("Shelve");
+        Repository<ReadingTracker> readingTrackerRepo = (Repository<ReadingTracker>) repoFactory.build("ReadingTracker");
         var authService = new AuthService(userRepo, rightRepo);
         sessionService = new SessionStatefulService(authService);
 
@@ -46,7 +46,7 @@ public class Application {
             userRepo.create(new User("admin", "admin", "admin@email.com"));
             shelveRepo.create(new Shelve("default-shelve"));
             authorRepo.create(new Author("default-author", Country.Romania));
-            bookRepo.create(new Book("default-book", "9784607084182", "13-May-1990", "default-author", "default-shelve"));
+            bookRepo.create(new Book("default-book", "9784607084182", "13-May-1990", "default-author", "default-shelve", 100));
             rightRepo.create(new Right(RightType.MANAGE_BOOKS, "admin"));
             rightRepo.create(new Right(RightType.MANAGE_USERS, "admin"));
             rightRepo.create(new Right(RightType.BORROW_BOOKS, "admin"));
@@ -58,7 +58,7 @@ public class Application {
             new AuthModule(appOutput, sessionService, authService)
         );
         this.executor.registerModule(
-            new BooksModule(appOutput, sessionService, authorRepo, bookRepo, shelveRepo)
+            new BooksModule(appOutput, sessionService, authorRepo, bookRepo, shelveRepo, readingTrackerRepo)
         );
         this.executor.registerModule(
             new AdminModule(appOutput, userRepo, rightRepo)

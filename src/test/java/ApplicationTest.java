@@ -54,7 +54,7 @@ public class ApplicationTest {
         var output = runApp(new String[]{
             "/login admin admin",
             "/authors/add test-author Romania",
-            "/books/add test-book 9784607084182 13-May-1990 test-author default-shelve",
+            "/books/add test-book 9784607084182 13-May-1990 test-author default-shelve 100",
             "/books/search test-book"
         });
 
@@ -122,11 +122,74 @@ public class ApplicationTest {
             "/books/shelve/add romance",
             "/books/shelve/add sf",
             "/authors/add test-author Romania",
-            "/books/add test-book 9784607084182 13-May-1990 test-author romance",
+            "/books/add test-book 9784607084182 13-May-1990 test-author romance 100",
             "/books/shelve/move_book sf test-book",
             "/books/shelve/list_books sf"
         });
 
         assertTrue(output.contains("Books in sf:\nBook(name=test-book"));
+    }
+
+    @Test
+    void shouldAddBookToToRead() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/to_read/add default-book",
+            "/books/to_read/list",
+        });
+
+        assertTrue(output.contains("Books in to-read list:\nBook(name=default-book"));
+    }
+
+    @Test
+    void shouldReadPages() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/to_read/add default-book",
+            "/books/read_pages default-book 50",
+            "/books/reading/list"
+        });
+
+        assertTrue(output.contains("Books in reading list:\nBook(name=default-book"));
+        assertTrue(output.contains("50/100"));
+    }
+
+    @Test
+    void shouldFinishBook() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/to_read/add default-book",
+            "/books/read_pages default-book 200",
+            "/books/read/list"
+        });
+
+        assertTrue(output.contains("Books in read list:\nBook(name=default-book"));
+    }
+
+    @Test
+    void shouldAddReviewToBook() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/to_read/add default-book",
+            "/books/read_pages default-book 200",
+            "/books/reviews/add default-book 3 This-is-a-review-text",
+            "/books/reviews/list default-book"
+        });
+
+        assertTrue(output.contains("Reviews for default-book:\n- admin 3/5 This-is-a-review-text"));
+    }
+
+    @Test
+    void shouldAddCommentToReview() {
+        var output = runApp(new String[] {
+            "/login admin admin",
+            "/books/to_read/add default-book",
+            "/books/read_pages default-book 200",
+            "/books/reviews/add default-book 3 This-is-a-review-text",
+            "/books/reviews/comments/add default-book admin This-is-a-comment",
+            "/books/reviews/show default-book admin",
+        });
+
+        assertTrue(output.contains("admin: This-is-a-comment"));
     }
 }
