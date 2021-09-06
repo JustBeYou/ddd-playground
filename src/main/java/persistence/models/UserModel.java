@@ -11,6 +11,10 @@ package persistence.models;
 import domain.User;
 import domain.Right;
 import persistence.models.RightModel;
+import domain.ReadingTracker;
+import persistence.models.ReadingTrackerModel;
+import domain.Review;
+import persistence.models.ReviewModel;
 
 
 import lombok.Data;
@@ -93,6 +97,8 @@ public class UserModel implements MappableModel<User> {
         fields.add(new Field("passwordHash", FieldType.String));
         fields.add(new Field("email", FieldType.String));
         fields.add(new Field("rights", FieldType.Reference));
+        fields.add(new Field("trackers", FieldType.Reference));
+        fields.add(new Field("reviews", FieldType.Reference));
 
         return fields;
     }
@@ -102,6 +108,22 @@ public class UserModel implements MappableModel<User> {
         if ("rights".equals(field)){ 
             var entities = (Collection<RightModel>) object; 
             var data = this.data.getRights();
+            if (!data.isEmpty()) {
+                data.clear();
+            } 
+            data.addAll(entities.stream().map(entity -> entity.getData()).collect(Collectors.toList()));
+         }
+        if ("trackers".equals(field)){ 
+            var entities = (Collection<ReadingTrackerModel>) object; 
+            var data = this.data.getTrackers();
+            if (!data.isEmpty()) {
+                data.clear();
+            } 
+            data.addAll(entities.stream().map(entity -> entity.getData()).collect(Collectors.toList()));
+         }
+        if ("reviews".equals(field)){ 
+            var entities = (Collection<ReviewModel>) object; 
+            var data = this.data.getReviews();
             if (!data.isEmpty()) {
                 data.clear();
             } 
@@ -119,6 +141,24 @@ public class UserModel implements MappableModel<User> {
                 "name",
                 new Field("rights", FieldType.Reference),
                 "Right",
+                "userName",
+                new Field("user", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "User",
+                "name",
+                new Field("trackers", FieldType.Reference),
+                "ReadingTracker",
+                "userName",
+                new Field("user", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "User",
+                "name",
+                new Field("reviews", FieldType.Reference),
+                "Review",
                 "userName",
                 new Field("user", FieldType.Reference)
             ),

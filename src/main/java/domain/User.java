@@ -16,6 +16,7 @@ public class User {
     @NonNull private String email;
     @NonNull private Collection<Right> rights;
     @NonNull private Collection<ReadingTracker> trackers;
+    @NonNull private Collection<Review> reviews;
 
     public User(@NonNull String name, @NonNull String password, @NonNull String email) {
         this(name, password, email, false);
@@ -23,18 +24,15 @@ public class User {
 
     public User(@NonNull String name, @NonNull String password, @NonNull String email, boolean copy) {
         if (copy) {
-            this.name = name;
             this.passwordHash = password;
-            this.email = email;
-            this.rights = new ArrayList<>();
-            this.trackers = new ArrayList<>();
         } else {
-            this.name = name;
             this.passwordHash = this.hash(password);
-            this.email = email;
-            this.rights = new ArrayList<>();
-            this.trackers = new ArrayList<>();
         }
+        this.name = name;
+        this.email = email;
+        this.rights = new ArrayList<>();
+        this.trackers = new ArrayList<>();
+        this.reviews = new ArrayList<>();
     }
 
     public boolean isPasswordValid(String password) {

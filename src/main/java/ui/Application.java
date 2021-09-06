@@ -8,9 +8,7 @@ import persistence.base.serialization.Field;
 import services.AuthService;
 import services.LoggerService;
 import services.SessionStatefulService;
-import ui.modules.AdminModule;
-import ui.modules.AuthModule;
-import ui.modules.BooksModule;
+import ui.modules.*;
 
 public class Application {
     private final Executor executor;
@@ -27,12 +25,15 @@ public class Application {
         this.appInput = appInput;
         this.appOutput = appOutput;
 
+        // Here, unsafe casting is necessary!
         Repository<User> userRepo = (Repository<User>) repoFactory.build("User");
         Repository<Right> rightRepo = (Repository<Right>) repoFactory.build("Right");
         Repository<Author> authorRepo = (Repository<Author>) repoFactory.build("Author");
         Repository<Book> bookRepo = (Repository<Book>) repoFactory.build("Book");
         Repository<Shelve> shelveRepo = (Repository<Shelve>) repoFactory.build("Shelve");
         Repository<ReadingTracker> readingTrackerRepo = (Repository<ReadingTracker>) repoFactory.build("ReadingTracker");
+        Repository<Review> reviewRepo = (Repository<Review>) repoFactory.build("Review");
+        Repository<Comment> commentRepo = (Repository<Comment>) repoFactory.build("Comment");
         var authService = new AuthService(userRepo, rightRepo);
         sessionService = new SessionStatefulService(authService);
 
@@ -58,7 +59,16 @@ public class Application {
             new AuthModule(appOutput, sessionService, authService)
         );
         this.executor.registerModule(
-            new BooksModule(appOutput, sessionService, authorRepo, bookRepo, shelveRepo, readingTrackerRepo)
+            new BooksModule(appOutput, sessionService, authorRepo, bookRepo, shelveRepo)
+        );
+        this.executor.registerModule(
+            new ReadingModule(appOutput, sessionService, bookRepo, readingTrackerRepo)
+        );
+        this.executor.registerModule(
+            new AuthorsModule(appOutput, authorRepo)
+        );
+        this.executor.registerModule(
+            new ReviewsModule(appOutput, sessionService, reviewRepo, commentRepo, bookRepo)
         );
         this.executor.registerModule(
             new AdminModule(appOutput, userRepo, rightRepo)

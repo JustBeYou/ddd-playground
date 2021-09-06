@@ -9,8 +9,6 @@ import lombok.NonNull;
 import persistence.base.Repository;
 import persistence.base.exceptions.CreationException;
 import persistence.base.exceptions.InvalidQueryOperation;
-import persistence.base.exceptions.InvalidStorageReferenceException;
-import persistence.base.exceptions.UpdateException;
 import persistence.base.queries.*;
 import services.SessionStatefulService;
 import ui.ApplicationOutput;
@@ -30,8 +28,7 @@ public class BooksModule implements Module {
         SessionStatefulService sessionService,
         Repository<Author> authorRepository,
         Repository<Book> bookRepository,
-        Repository<Shelve> shelveRepository,
-        Repository<ReadingTracker> readingTrackerRepository
+        Repository<Shelve> shelveRepository
     ) {
         commands = new ArrayList<>();
 
@@ -61,24 +58,6 @@ public class BooksModule implements Module {
                 return CommandStatus.SUCCESS;
             }, new RightType[]{RightType.MANAGE_BOOKS})
         );
-
-        commands.add(new Command(
-            "/authors/add", "<name> <country>",
-            "Adds a new book author.",
-            (String[] args) -> {
-                var name = args[0];
-                var country = args[1];
-
-                try {
-                    authorRepository.create(new Author(name, Country.valueOf(country)));
-                } catch (Exception ex) {
-                    appOutput.writeLine("Could not add new author: " + ex.getMessage());
-                    return CommandStatus.FAIL;
-                }
-
-                return CommandStatus.SUCCESS;
-            }, new RightType[]{RightType.MANAGE_BOOKS}
-        ));
 
         commands.add(new Command(
            "/books/search", "<string>",
@@ -284,75 +263,6 @@ public class BooksModule implements Module {
                         appOutput.writeLine(shelve.getData().toString());
                     }
                 } catch (InvalidQueryOperation ignored) {
-                    return CommandStatus.FAIL;
-                }
-
-                return CommandStatus.SUCCESS;
-            }, new RightType[]{}
-        ));
-
-        commands.add(new Command(
-            "/books/to_read/add", "<book>",
-            "Add a book to the reading list",
-            args -> {
-                var bookName = args[0];
-
-                var query = new QueryFactory().buildSimpleQuery(
-                    "name", bookName, QueryOperation.IsSame
-                );
-                var foundBook = bookRepository.findOne(query);
-                if (foundBook.isEmpty()) {
-                    appOutput.writeLine("Book not found.");
-                    return CommandStatus.FAIL;
-                }
-
-                query = new QueryFactory().buildSimpleQuery(
-                    "bookName", bookName, QueryOperation.IsSame
-                );
-                var alreadyExists = readingTrackerRepository.exists(query);
-                if (alreadyExists) {
-                    appOutput.writeLine("Book already in the reading list.");
-                    return CommandStatus.FAIL;
-                }
-
-                try {
-                    readingTrackerRepository.create(
-                        new ReadingTracker(sessionService.getCurrentUser().getName(), bookName)
-                    );
-                } catch (CreationException e) {
-                    appOutput.writeLine("Could not add book to reading list: " + e.getMessage());
-                    return CommandStatus.FAIL;
-                }
-
-                appOutput.writeLine("Added book to reading list.");
-
-                return CommandStatus.SUCCESS;
-            }, new RightType[]{}
-        ));
-
-        commands.add(new Command(
-            "/books/to_read/list", "",
-            "List all book in to-read list.",
-            args -> {
-                var queryFactory = new QueryFactory();
-                var node = queryFactory.buildAnd(
-                  new QueryNode[]{
-                    queryFactory.buildClause("started", "", QueryOperation.IsFalse),
-                      queryFactory.buildClause("userName", sessionService.getCurrentUser().getName(), QueryOperation.IsSame)
-                  }
-                );
-                var query = new Query(node);
-
-                appOutput.writeLine("Books in to-read list:");
-
-                try {
-                    var trackers = readingTrackerRepository.find(query);
-                    for (var tracker: trackers) {
-                        readingTrackerRepository.loadRelations(tracker);
-                        appOutput.writeLine(tracker.getData().getBook().toString());
-                    }
-                } catch (Exception e) {
-                    appOutput.writeLine("Could not list books: " + e.getMessage());
                     return CommandStatus.FAIL;
                 }
 

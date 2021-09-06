@@ -13,6 +13,8 @@ import domain.Author;
 import persistence.models.AuthorModel;
 import domain.Shelve;
 import persistence.models.ShelveModel;
+import domain.Review;
+import persistence.models.ReviewModel;
 
 
 import lombok.Data;
@@ -116,6 +118,7 @@ public class BookModel implements MappableModel<Book> {
         fields.add(new Field("shelveName", FieldType.String));
         fields.add(new Field("shelve", FieldType.Reference));
         fields.add(new Field("pages", FieldType.Integer));
+        fields.add(new Field("reviews", FieldType.Reference));
 
         return fields;
     }
@@ -124,6 +127,14 @@ public class BookModel implements MappableModel<Book> {
     public void loadRelationField(String field, Object object) {
         if ("author".equals(field)){         this.getData().setAuthor((Author) object); }
         if ("shelve".equals(field)){         this.getData().setShelve((Shelve) object); }
+        if ("reviews".equals(field)){ 
+            var entities = (Collection<ReviewModel>) object; 
+            var data = this.data.getReviews();
+            if (!data.isEmpty()) {
+                data.clear();
+            } 
+            data.addAll(entities.stream().map(entity -> entity.getData()).collect(Collectors.toList()));
+         }
 
     }
 
@@ -154,6 +165,15 @@ public class BookModel implements MappableModel<Book> {
                 "name",
                 new Field("trackers", FieldType.Reference),
                 "ReadingTracker",
+                "bookName",
+                new Field("book", FieldType.Reference)
+            ),
+            new RelatedField(
+                RelationType.ONE_OWNS_MANY,
+                "Book",
+                "name",
+                new Field("reviews", FieldType.Reference),
+                "Review",
                 "bookName",
                 new Field("book", FieldType.Reference)
             ),

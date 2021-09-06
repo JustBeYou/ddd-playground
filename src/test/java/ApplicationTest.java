@@ -159,7 +159,7 @@ public class ApplicationTest {
         var output = runApp(new String[] {
             "/login admin admin",
             "/books/to_read/add default-book",
-            "/books/read_pages default-book 200",
+            "/books/read_pages default-book 999",
             "/books/read/list"
         });
 
@@ -176,7 +176,7 @@ public class ApplicationTest {
             "/books/reviews/list default-book"
         });
 
-        assertTrue(output.contains("Reviews for default-book:\n- admin 3/5 This-is-a-review-text"));
+        assertTrue(output.contains("Reviews for default-book:\n- #1 admin 3/5 This-is-a-review-text"));
     }
 
     @Test
@@ -186,8 +186,8 @@ public class ApplicationTest {
             "/books/to_read/add default-book",
             "/books/read_pages default-book 200",
             "/books/reviews/add default-book 3 This-is-a-review-text",
-            "/books/reviews/comments/add default-book admin This-is-a-comment",
-            "/books/reviews/show default-book admin",
+            "/books/reviews/comments/add 1 This-is-a-comment",
+            "/books/reviews/show 1",
         });
 
         assertTrue(output.contains("admin: This-is-a-comment"));

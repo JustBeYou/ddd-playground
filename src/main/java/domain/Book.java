@@ -7,6 +7,9 @@ import domain.exceptions.NotEnoughRights;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 @Data
 public class Book {
     @NonNull
@@ -31,6 +34,8 @@ public class Book {
     @NonNull
     private Integer pages;
 
+    private Collection<Review> reviews;
+
     public Book(@NonNull String name, @NonNull String ISBN, @NonNull String publishedAt,
                 @NonNull Boolean available, @NonNull String borrowerName, @NonNull String authorName,
                 @NonNull String shelveName, @NonNull Integer pages) {
@@ -42,6 +47,7 @@ public class Book {
         this.authorName = authorName;
         this.shelveName = shelveName;
         this.pages = pages;
+        this.reviews = new ArrayList<>();
     }
 
     public Book(@NonNull String name, @NonNull String ISBN,
@@ -59,6 +65,7 @@ public class Book {
         this.borrowerName = "";
         this.shelveName = shelveName;
         this.pages = pages;
+        this.reviews = new ArrayList<>();
     }
 
     public void borrowTo(User user) throws NotEnoughRights, BookNotAvailable {

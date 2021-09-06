@@ -6,7 +6,6 @@ import persistence.drivers.inmemory.InMemoryRepository;
 
 public class InMemoryRepositoryFactory implements RepositoryFactory {
     @Override
-    // TODO: type safety?
     public Repository<?> build(String name) {
         return switch (name) {
             case "Book" -> new InMemoryRepository<>(new BookModelFactory(), this);
@@ -15,6 +14,8 @@ public class InMemoryRepositoryFactory implements RepositoryFactory {
             case "Right" -> new InMemoryRepository<>(new RightModelFactory(), this);
             case "Shelve" -> new InMemoryRepository<>(new ShelveModelFactory(), this);
             case "ReadingTracker" -> new InMemoryRepository<>(new ReadingTrackerModelFactory(), this);
+            case "Review" -> new InMemoryRepository<>(new ReviewModelFactory(), this);
+            case "Comment" -> new InMemoryRepository<>(new CommentModelFactory(), this);
             default -> null;
         };
     }
